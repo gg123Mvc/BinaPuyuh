@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sistem Manajemen Peternakan Puyuh</title>
+    <link rel="stylesheet" href="./css/style.css" />
+    <!-- FontAwesome for Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      /* Optional: simple fallback if internet is slow for fonts */
+      .fa-egg {
+        color: #ffa000;
+      }
+      .fa-dove {
+        color: #795548;
+      }
+      .fa-warehouse {
+        color: #5d4037;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="container">
+        <h1>Peternakan Puyuh Modern</h1>
+        <p>
+          Kelola produksi, pakan, dan populasi kandang dengan mudah dan efisien.
+        </p>
+        <a href="login.html" class="btn btn-primary"
+          ><i class="fas fa-user-shield"></i> Login Admin</a
+        >
+      </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="section">
+      <div class="container">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-dove"></i></div>
+            <div class="stat-value" id="total-puyuh">0</div>
+            <div class="stat-label">Total Populasi Puyuh</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-egg"></i></div>
+            <div class="stat-value" id="total-telur">0</div>
+            <div class="stat-label">Produksi Telur Hari Ini</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-warehouse"></i></div>
+            <div class="stat-value" id="total-kandang">0</div>
+            <div class="stat-label">Jumlah Kandang Aktif</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- About / Features -->
+    <section class="section" style="background: white">
+      <div class="container">
+        <div class="text-center mb-3">
+          <h2>Fitur Unggulan</h2>
+          <p style="color: var(--text-secondary)">
+            Sistem kami membantu peternak memaksimalkan hasil.
+          </p>
+        </div>
+
+        <div
+          style="
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+          "
+        >
+          <div class="card" style="border: none; box-shadow: none">
+            <h3 class="mb-2">
+              <i
+                class="fas fa-chart-line"
+                style="color: var(--primary-color)"
+              ></i>
+              Monitoring Real-time
+            </h3>
+            <p>
+              Pantau perkembangan populasi dan produksi telur setiap hari
+              melalui dashboard interaktif.
+            </p>
+          </div>
+          <div class="card" style="border: none; box-shadow: none">
+            <h3 class="mb-2">
+              <i
+                class="fas fa-calculator"
+                style="color: var(--primary-color)"
+              ></i>
+              Manajemen Pakan
+            </h3>
+            <p>
+              Hitung kebutuhan pakan dan catat pembelian inventaris agar stok
+              selalu terjaga.
+            </p>
+          </div>
+          <div class="card" style="border: none; box-shadow: none">
+            <h3 class="mb-2">
+              <i
+                class="fas fa-mobile-alt"
+                style="color: var(--primary-color)"
+              ></i>
+              Akses Mobile
+            </h3>
+            <p>
+              Desain responsif memungkinkan Anda mengelola peternakan dari
+              smartphone di mana saja.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer
+      style="
+        background: var(--primary-dark);
+        color: white;
+        padding: 2rem 0;
+        margin-top: auto;
+      "
+    >
+      <div class="container text-center">
+        <p>&copy; 2024 Manajemen Peternakan Puyuh. All rights reserved.</p>
+      </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="./js/config.js"></script>
+    <script src="./js/app.js"></script>
+    <script>
+      // Simple script to load public stats on landing page
+      document.addEventListener("DOMContentLoaded", () => {
+        const data = StorageManager.getData();
+        document.getElementById("total-puyuh").innerText =
+          data.stats.totalPuyuh || 1250;
+        document.getElementById("total-telur").innerText =
+          data.stats.todayEgg || 854;
+        document.getElementById("total-kandang").innerText =
+          data.kandangs.length || 5;
+      });
+    </script>
+  </body>
+</html>
