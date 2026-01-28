@@ -107,13 +107,12 @@
                 const success = await Auth.login(user, pass);
                 if (success) {
                     window.location.href = 'dashboard.html';
-                } else {
-                    throw new Error('Login failed');
                 }
             } catch (err) {
+                errorDiv.innerText = err.message || 'Login gagal'; // Show specific message
                 errorDiv.style.display = 'block';
                 // Shake effect
-                const card = document.querySelector('.login-card');
+                const card = document.querySelector('.auth-card');
                 card.style.transform = 'translateX(5px)';
                 setTimeout(() => card.style.transform = 'translateX(-5px)', 50);
                 setTimeout(() => card.style.transform = 'translate(0)', 100);

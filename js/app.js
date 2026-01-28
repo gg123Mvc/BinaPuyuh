@@ -60,16 +60,19 @@ class Auth {
                 const { error: dbError } = await sb.from('admins').insert({
                     id: data.user.id,
                     email: email,
-                    full_name: fullName
+                    full_name: fullName,
+                    role: 'pending' // Default role is now PENDING
                 });
 
                 if (dbError) {
                     console.error('DB Insert Error:', dbError);
+                    // Optional: Delete auth user if DB insert fails to keep clean state
                 }
 
-                sessionStorage.setItem('IS_LOGGED_IN', 'true');
-                sessionStorage.setItem('USER_DATA', JSON.stringify(data.user));
-                return true;
+                // Do NOT login automatically. Ask to wait.
+                // sessionStorage.setItem('IS_LOGGED_IN', 'true');
+                // sessionStorage.setItem('USER_DATA', JSON.stringify(data.user));
+                return true; 
             }
             return false;
 
@@ -90,16 +93,33 @@ class Auth {
 
             if (error) throw error;
 
+            // 2. Check Role in public.admins
+            const { data: admin, error: adminError } = await sb
+                .from('admins')
+                .select('role')
+                .eq('id', data.user.id)
+                .single();
+
+            if (adminError || !admin) {
+                await sb.auth.signOut();
+                throw new Error('Profil admin tidak ditemukan/korup.');
+            }
+
+            if (admin.role !== 'admin') {
+                await sb.auth.signOut();
+                throw new Error('Akun Anda sedang menunggu persetujuan Admin utama.');
+            }
+
             sessionStorage.setItem('IS_LOGGED_IN', 'true');
             sessionStorage.setItem('USER_DATA', JSON.stringify(data.user));
             return true;
         } catch (e) {
-            // Fallback for "dummy" admin
+            // Fallback for "dummy" admin (dev only)
             if (username === 'admin@example.com' && password === 'admin') {
                 sessionStorage.setItem('IS_LOGGED_IN', 'true');
                 return true;
             }
-            return false;
+            throw e; // Rethrow to show specific message
         }
     }
 

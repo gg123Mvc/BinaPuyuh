@@ -46,6 +46,9 @@
                 <div class="nav-item" data-target="populasi">
                     <i class="fas fa-chart-line"></i> Riwayat Populasi
                 </div>
+                <div class="nav-item" data-target="admin">
+                    <i class="fas fa-users-cog"></i> Data Admin
+                </div>
                 <div class="nav-item" onclick="Auth.logout()">
                     <i class="fas fa-sign-out-alt"></i> Logout
                 </div>
@@ -261,6 +264,32 @@
                         </table>
                     </div>
                 </div>
+            <!-- SECTION: ADMIN MANAGER -->
+            <div id="admin" class="section-content">
+                <div class="card">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+                        <h3>Manajemen Admin</h3>
+                        <div>
+                            <button class="btn btn-outline btn-sm" onclick="AdminManager.renderTable(true)">
+                                <i class="fas fa-sync-alt"></i> Refresh Data
+                            </button>
+                        </div>
+                    </div>
+                    <div style="overflow-x:auto">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Tanggal Daftar</th>
+                                    <th>Nama</th>
+                                    <th>Email</th>
+                                    <th>Status</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
 
         </main>
@@ -417,6 +446,7 @@
     <script src="./src/PembelianManager.js"></script>
     <script src="./src/PakanManager.js"></script>
     <script src="./src/PopulasiManager.js"></script>
+    <script src="./src/AdminManager.js"></script>
     <script src="./js/dashboard.js"></script>
     <script>
         // Init all sections if present in dashboard
@@ -429,6 +459,7 @@
                 PakanManager.renderTable();
             }
             if(window.PopulasiManager) PopulasiManager.renderTable();
+            if(window.AdminManager) AdminManager.renderTable();
         });
     </script>
 </body>

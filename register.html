@@ -118,8 +118,8 @@
                 try {
                     const success = await Auth.register(email, pass, fullName);
                     if (success) {
-                        alert('Registrasi berhasil! Anda akan diarahkan ke Dashboard.');
-                        window.location.href = 'dashboard.html';
+                        alert('Registrasi berhasil! Silakan tunggu persetujuan Admin sebelum bisa login.');
+                        window.location.href = 'login.html';
                     }
                 } catch (err) {
                     errorDiv.innerText = 'Error: ' + err.message;

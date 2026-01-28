@@ -31,6 +31,9 @@ const SidebarManager = {
                 document.querySelectorAll('.section-content').forEach(s => s.classList.remove('active'));
                 const targetSection = document.getElementById(targetId);
                 if (targetSection) targetSection.classList.add('active');
+                if (targetId === 'pakan') PakanManager.renderTable();
+                if (targetId === 'populasi') PopulasiManager.renderTable();
+                if (targetId === 'admin') AdminManager.renderTable();
 
                 // Mobile specific: close sidebar after click
                 if (window.innerWidth <= 768) {
