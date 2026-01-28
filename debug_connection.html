@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Supabase Connection Debugger</title>
+    <style>
+        body { font-family: monospace; padding: 2rem; background: #f0f0f0; }
+        .log { background: white; padding: 1rem; border: 1px solid #ccc; margin-bottom: 1rem; white-space: pre-wrap; }
+        .success { color: green; font-weight: bold; }
+        .error { color: red; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>Supabase Connection Debugger</h1>
+    
+    <div id="status">Converting...</div>
+    
+    <div class="log" id="logOutput"></div>
+
+    <!-- 1. Load Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const logger = document.getElementById('logOutput');
+        function log(msg, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const el = document.createElement('div');
+            el.textContent = `[${timestamp}] ${msg}`;
+            if (type === 'error') el.className = 'error';
+            if (type === 'success') el.className = 'success';
+            logger.appendChild(el);
+            console.log(msg);
+        }
+
+        async function runDiagnostics() {
+            log("Starting Diagnostics...", 'info');
+
+            // Check Library
+            if (!window.supabase) {
+                log("FAIL: Supabase library not loaded from CDN.", 'error');
+                return;
+            }
+            log("PASS: Supabase library loaded.", 'success');
+
+            // Load Config Manually to be sure
+            // Note: We are not importing config.js here to test raw values. 
+            // We will Try to read from global window if config.js was loaded, 
+            // but effectively we want to see what the user REALLY has.
+            
+            // Let's attempt to load the config file dynamically to see if it exists
+            try {
+                const configScript = document.createElement('script');
+                configScript.src = './js/config.js';
+                configScript.onload = async () => {
+                    log("PASS: js/config.js loaded.", 'success');
+                    await checkConnection();
+                };
+                configScript.onerror = () => {
+                    log("FAIL: Could not load js/config.js. Check file path.", 'error');
+                };
+                document.head.appendChild(configScript);
+            } catch (e) {
+                log("FAIL: Error loading config script: " + e.message, 'error');
+            }
+        }
+
+        async function checkConnection() {
+            if (typeof SUPABASE_URL === 'undefined') {
+                log("FAIL: SUPABASE_URL is not defined in config.js", 'error');
+                return;
+            }
+            if (typeof SUPABASE_KEY === 'undefined') {
+                log("FAIL: SUPABASE_KEY is not defined in config.js", 'error');
+                return;
+            }
+
+            log(`INFO: URL = ${SUPABASE_URL}`);
+            log(`INFO: KEY Length = ${SUPABASE_KEY.length}`);
+
+            try {
+                const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                log("PASS: Client initialized.", 'success');
+
+                log("Attempting to fetch 'kandang' table...");
+                const { data, error } = await client.from('kandang').select('count', { count: 'exact', head: true });
+
+                if (error) {
+                    log("FAIL: Database Connection Error: " + JSON.stringify(error), 'error');
+                    log("HINT: Check if table 'kandang' exists or RLS policies block access.", 'info');
+                } else {
+                    log("PASS: Successfully connected to database!", 'success');
+                    log("PASS: Connection Verified.", 'success');
+                }
+
+            } catch (err) {
+                log("CRITICAL: Unexpected Error: " + err.message, 'error');
+            }
+        }
+
+        runDiagnostics();
+    </script>
+</body>
+</html>

@@ -40,6 +40,9 @@
                 <div class="nav-item active" data-target="overview">
                     <i class="fas fa-th-large"></i> Ringkasan
                 </div>
+                <div class="nav-item" data-target="inkubator">
+                    <i class="fas fa-temperature-high"></i> Inkubator
+                </div>
                 <div class="nav-item" data-target="kandang">
                     <i class="fas fa-warehouse"></i> Manajemen Kandang
                 </div>
@@ -127,7 +130,9 @@
                     <!-- Form Input -->
                     <div class="card">
                         <h3 class="mb-3">Input Pembelian Baru</h3>
-                        <form id="purchaseForm">
+                    <div class="card">
+                        <h3 class="mb-3">Input Pembelian Baru</h3>
+                        <form id="purchaseForm" onsubmit="event.preventDefault(); PembelianManager.save();">
                             <div class="form-group">
                                 <label class="form-label">Nama Item</label>
                                 <input type="text" id="p_item" class="form-input" required placeholder="Contoh: Pakan A">
@@ -186,9 +191,9 @@
 
     <!-- MODAL ADD/EDIT KANDANG -->
     <div id="kandangModal" class="modal">
-        <div class="modal-content">
-            <h3 class="mb-3" id="kandangModalTitle">Tambah Kandang</h3>
-            <form id="kandangForm">
+        <div class="modal-content">           
+             <h3 class="mb-3" id="kandangModalTitle">Tambah Kandang</h3>
+            <form id="kandangForm" onsubmit="event.preventDefault(); KandangManager.save();">
                 <input type="hidden" id="k_id">
                 <div class="form-group">
                     <label class="form-label">Nama Kandang</label>
@@ -210,9 +215,57 @@
         </div>
     </div>
 
+    <!-- MODAL INKUBATOR -->
+    <div id="inkubatorModal" class="modal">
+        <div class="modal-content">
+            <h3 class="mb-3">Data Inkubasi</h3>
+            <form id="inkubatorForm" onsubmit="event.preventDefault(); InkubatorManager.save();">
+                <input type="hidden" id="ink_id">
+                <div class="form-group">
+                    <label class="form-label">Tanggal Masuk</label>
+                    <input type="date" id="ink_date" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Jumlah Telur</label>
+                    <input type="number" id="ink_count" class="form-input" required min="1">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Sumber Telur</label>
+                    <select id="ink_source" class="form-select">
+                        <option value="produksi">Produksi Sendiri</option>
+                        <option value="beli">Beli dari Luar</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <select id="ink_status" class="form-select">
+                        <option value="inkubasi">Proses Inkubasi</option>
+                        <option value="menetas">Sudah Menetas</option>
+                        <option value="gagal">Gagal / Busuk</option>
+                    </select>
+                </div>
+                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1rem;">
+                    <button type="button" class="btn btn-secondary" onclick="InkubatorManager.closeModal()">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="./js/config.js"></script>
     <script src="./js/app.js"></script>
+    <script src="./js/modal.js"></script>
+    <script src="./src/InkubatorManager.js"></script>
+    <script src="./src/KandangManager.js"></script>
+    <script src="./src/PembelianManager.js"></script>
     <script src="./js/dashboard.js"></script>
+    <script>
+        // Init all sections if present in dashboard
+        document.addEventListener('DOMContentLoaded', () => {
+            if(window.KandangManager) KandangManager.renderTable();
+            if(window.PembelianManager) PembelianManager.renderTable();
+        });
+    </script>
 </body>
 </html>

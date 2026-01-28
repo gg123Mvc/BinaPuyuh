@@ -77,10 +77,23 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="./js/config.js"></script>
-    <script src="./js/app.js"></script>
+    <script src="./js/app.js?v=2"></script>
     <script>
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
+        window.onload = function() {
+            if (typeof Auth === 'undefined') {
+                const errorMsg = 'CRITICAL: "Auth" class is not defined. \n\nPossibilities:\n1. js/app.js failed to load (Check Network Tab)\n2. js/app.js has a syntax error (Check Console)\n3. js/config.js is missing or invalid';
+                console.error(errorMsg);
+                alert(errorMsg);
+                document.getElementById('error-msg').innerText = "System Error: Failed to load Application Logic.";
+                document.getElementById('error-msg').style.display = 'block';
+                document.querySelector('button[type="submit"]').disabled = true;
+                return;
+            }
+            
+            document.getElementById('loginForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                // ... (rest of the logic)
+
             const user = document.getElementById('username').value;
             const pass = document.getElementById('password').value;
             const errorDiv = document.getElementById('error-msg');
@@ -109,6 +122,7 @@
                 submitBtn.innerText = 'MASUK SEKARANG';
             }
         });
+        };
     </script>
 </body>
 </html>
