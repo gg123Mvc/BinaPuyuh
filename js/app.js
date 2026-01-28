@@ -124,6 +124,25 @@ class Auth {
              window.location.href = 'login.html';
         }
     }
+    static getUser() {
+        const json = sessionStorage.getItem('USER_DATA');
+        if (json) {
+            try {
+                return JSON.parse(json);
+            } catch (e) {
+                return null;
+            }
+        }
+        return null;
+    }
+
+    static getCurrentName() {
+        const user = this.getUser();
+        if (user && user.user_metadata && user.user_metadata.full_name) {
+            return user.user_metadata.full_name;
+        }
+        return 'Admin'; // Fallback
+    }
 }
 
 // Helpers

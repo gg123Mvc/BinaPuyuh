@@ -1,8 +1,3 @@
-/**
- * InkubatorManager.js
- * Handles CRUD for 'inkubator' table
- */
-
 class InkubatorManager {
     static async renderTable() {
         const sb = window.supabaseClient;
@@ -13,31 +8,32 @@ class InkubatorManager {
         
         if (error) {
             console.error('Inkubator Error:', error);
-            alert('Gagal mengambil data inkubator: ' + error.message);
+            // alert('Gagal mengambil data inkubator: ' + error.message);
             return;
         }
-
-        console.log('Inkubator Data:', list);
 
         const tbody = document.getElementById('inkubatorTableBody');
         if (!tbody) return;
         tbody.innerHTML = '';
 
+        if (list.length === 0) {
+             tbody.innerHTML = '<tr><td colspan="5" style="text-align:center">Belum ada data. (Cek RLS jika data harusnya ada)</td></tr>';
+        }
+
         list.forEach(item => {
             const tr = document.createElement('tr');
             
             // Status Badge Color
-            let badgeClass = 'bg-gray-200 text-gray-800';
-            if(item.status === 'inkubasi') badgeClass = 'background: #FEF3C7; color: #D97706; padding: 4px 8px; border-radius: 4px;';
-            if(item.status === 'menetas') badgeClass = 'background: #D1FAE5; color: #059669; padding: 4px 8px; border-radius: 4px;';
-            if(item.status === 'gagal') badgeClass = 'background: #FEE2E2; color: #DC2626; padding: 4px 8px; border-radius: 4px;';
+            let badgeClass = 'background: #E5E7EB; color: #374151; padding: 4px 8px; border-radius: 4px;'; // Default
+            if(item.status === 'inkubasi') badgeClass = 'background: #FEF3C7; color: #D97706; padding: 4px 8px; border-radius: 4px;'; // Yellow
+            if(item.status === 'menetas') badgeClass = 'background: #D1FAE5; color: #059669; padding: 4px 8px; border-radius: 4px;'; // Green
+            if(item.status === 'gagal') badgeClass = 'background: #FEE2E2; color: #DC2626; padding: 4px 8px; border-radius: 4px;'; // Red
 
             tr.innerHTML = `
                 <td>${item.tanggal_masuk}</td>
                 <td>${item.jumlah_telur} Butir</td>
                 <td>${item.sumber}</td>
-                <td>${item.estimasi_menetas || '-'}</td>
-                <td><span style="${badgeClass}">${item.status.toUpperCase()}</span></td>
+                <td><span style="${badgeClass}">${(item.status || '-').toUpperCase()}</span></td>
                 <td>
                     <button class="btn btn-secondary btn-sm" onclick="InkubatorManager.edit(${item.id})"><i class="fas fa-edit"></i></button>
                     <button class="btn btn-danger btn-sm" onclick="InkubatorManager.delete(${item.id})"><i class="fas fa-trash"></i></button>
@@ -65,16 +61,22 @@ class InkubatorManager {
             jumlah_telur: count,
             sumber: source,
             status: status,
+            created_by: Auth.getCurrentName(),
             estimasi_menetas: estimasi
         };
 
         let error;
-        if (id) {
-            const { error: err } = await sb.from('inkubator').update(payload).eq('id', id);
-            error = err;
-        } else {
-            const { error: err } = await sb.from('inkubator').insert(payload);
-            error = err;
+        try {
+            if (id) {
+                const { error: err } = await sb.from('inkubator').update(payload).eq('id', id);
+                error = err;
+            } else {
+                const { error: err } = await sb.from('inkubator').insert(payload);
+                error = err;
+            }
+        } catch (e) {
+             alert('Error: ' + e.message);
+             return;
         }
 
         if (error) {
@@ -101,17 +103,30 @@ class InkubatorManager {
     }
 
     static async delete(id) {
-        const confirm = await window.Confirm.show('Hapus data inkubasi ini?', 'Hapus Data');
-        if (confirm) {
+        if(confirm('Hapus data inkubasi ini?')) { // Fallback if custom confirm fails
             const { error } = await window.supabaseClient.from('inkubator').delete().eq('id', id);
             if (!error) this.renderTable();
         }
     }
 
+    static calcEstimation() {
+        const dateStr = document.getElementById('ink_date').value;
+        if (!dateStr) return;
+        
+        const d = new Date(dateStr);
+        d.setDate(d.getDate() + 17);
+        // Format to DD/MM/YYYY or YYYY-MM-DD
+        // const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        // document.getElementById('ink_estimation').value = d.toLocaleDateString('id-ID', options);
+        document.getElementById('ink_estimation').value = d.toISOString().split('T')[0];
+    }
+
     static openModal() {
         document.getElementById('inkubatorForm').reset();
         document.getElementById('ink_id').value = '';
-        document.getElementById('ink_date').valueAsDate = new Date();
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('ink_date').value = today;
+        this.calcEstimation(); // Auto calc for today
         document.getElementById('inkubatorModal').classList.add('open');
     }
 

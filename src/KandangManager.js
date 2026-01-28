@@ -79,7 +79,8 @@ class KandangManager {
         const payload = {
             nama_kandang: name,
             kapasitas: capacity,
-            jumlah_puyuh: count
+            jumlah_puyuh: count,
+            created_by: Auth.getCurrentName()
         };
 
         let error;

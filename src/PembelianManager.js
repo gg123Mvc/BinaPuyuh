@@ -62,6 +62,7 @@ class PembelianManager {
             jumlah: qty,
             satuan: 'pcs', // Default or add input for it
             harga_total: total,
+            created_by: Auth.getCurrentName(),
             tanggal: date
         };
 
