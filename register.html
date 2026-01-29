@@ -122,7 +122,39 @@
                         window.location.href = 'login.html';
                     }
                 } catch (err) {
-                    errorDiv.innerText = 'Error: ' + err.message;
+                    console.error(err);
+                    let msg = err.message;
+                    
+                    if (msg.includes('rate limit')) {
+                        // Styled Alert for Rate Limit
+                        errorDiv.innerHTML = `
+                            <div style="background: rgba(220, 38, 38, 0.15); border: 1px solid rgba(220, 38, 38, 0.5); padding: 1rem; border-radius: 12px; display: flex; gap: 12px; align-items: flex-start; text-align: left;">
+                                <i class="fas fa-shield-alt" style="color: #EF5350; font-size: 1.5rem; margin-top: 2px;"></i>
+                                <div>
+                                    <h4 style="color: #EF5350; margin: 0 0 5px 0; font-weight: 600;">Akses Dibatasi Sementara</h4>
+                                    <p style="color: #e5e7eb; font-size: 0.85rem; margin: 0; line-height: 1.4;">
+                                        Sistem keamanan mendeteksi terlalu banyak percobaan pendaftaran dari email/device ini.
+                                    </p>
+                                    <div style="margin-top: 8px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 6px;">
+                                        <p style="color: #4ADE80; font-size: 0.85rem; margin: 0; font-weight: 500;">
+                                            <i class="fas fa-lightbulb"></i> Solusi:
+                                        </p>
+                                        <p style="color: #9ca3af; font-size: 0.8rem; margin: 4px 0 0 0;">
+                                            Gunakan <b>alamat email yang berbeda</b> untuk mendaftar sekarang.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        // Standard Error
+                        errorDiv.innerHTML = `
+                            <div style="background: rgba(220, 38, 38, 0.1); border: 1px solid #ef4444; padding: 0.8rem; border-radius: 8px; color: #fca5a5; display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-exclamation-circle"></i>
+                                <span>${err.message}</span>
+                            </div>
+                        `;
+                    }
                     errorDiv.style.display = 'block';
                 } finally {
                     submitBtn.disabled = false;
