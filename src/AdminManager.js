@@ -132,7 +132,8 @@ class AdminManager {
         const { error: otpError } = await sb.auth.signInWithOtp({ 
             email: email,
             options: {
-                shouldCreateUser: false // User must exist
+                shouldCreateUser: false, // User must exist
+                emailRedirectTo: window.location.origin + '/Puyuh/verify.html' // Force redirect to custom page
             }
         });
 

@@ -3,36 +3,57 @@ class InkubatorManager {
         const sb = window.supabaseClient;
         if (!sb) return;
 
+        // Clear existing interval if any to prevent leaks
+        if (this.timerInterval) clearInterval(this.timerInterval);
+
         console.log('Fetching Inkubator data...');
         const { data: list, error } = await sb.from('inkubator').select('*').order('tanggal_masuk', { ascending: false });
         
         if (error) {
             console.error('Inkubator Error:', error);
-            // alert('Gagal mengambil data inkubator: ' + error.message);
             return;
         }
 
+        this.data = list;
         const tbody = document.getElementById('inkubatorTableBody');
         if (!tbody) return;
         tbody.innerHTML = '';
 
         if (list.length === 0) {
-             tbody.innerHTML = '<tr><td colspan="5" style="text-align:center">Belum ada data. (Cek RLS jika data harusnya ada)</td></tr>';
+             tbody.innerHTML = '<tr><td colspan="6" style="text-align:center">Belum ada data.</td></tr>';
         }
 
         list.forEach(item => {
             const tr = document.createElement('tr');
             
-            // Status Badge Color
-            let badgeClass = 'background: #E5E7EB; color: #374151; padding: 4px 8px; border-radius: 4px;'; // Default
-            if(item.status === 'inkubasi') badgeClass = 'background: #FEF3C7; color: #D97706; padding: 4px 8px; border-radius: 4px;'; // Yellow
-            if(item.status === 'menetas') badgeClass = 'background: #D1FAE5; color: #059669; padding: 4px 8px; border-radius: 4px;'; // Green
-            if(item.status === 'gagal') badgeClass = 'background: #FEE2E2; color: #DC2626; padding: 4px 8px; border-radius: 4px;'; // Red
+            let badgeClass = 'background: #E5E7EB; color: #374151; padding: 4px 8px; border-radius: 4px;';
+            if(item.status === 'inkubasi') badgeClass = 'background: #FEF3C7; color: #D97706; padding: 4px 8px; border-radius: 4px;';
+            if(item.status === 'menetas') badgeClass = 'background: #D1FAE5; color: #059669; padding: 4px 8px; border-radius: 4px;';
+            if(item.status === 'gagal') badgeClass = 'background: #FEE2E2; color: #DC2626; padding: 4px 8px; border-radius: 4px;';
+
+            // Calculate Target Date (Masuk + 17 Days)
+            const enterDate = new Date(item.tanggal_masuk);
+            const targetDate = new Date(enterDate);
+            targetDate.setDate(enterDate.getDate() + 17);
+            // reset time to end of that day or specific time? Let's assume end of day 17 or same time.
+            // Since we only have date, let's target 00:00 of the 18th day (end of 17th) or just 17th.
+            // Simplified: Target is 00:00 of date+17.
+
+            const targetIso = targetDate.toISOString(); 
+
+            // Timer Cell
+            let timerHtml = '-';
+            if (item.status === 'inkubasi') {
+                timerHtml = `<span class="countdown-timer" data-target="${targetIso}" style="font-family:monospace; font-weight:bold; color: #2563EB;">Loading...</span>`;
+            } else {
+                timerHtml = `<small class="text-muted">Selesai</small>`;
+            }
 
             tr.innerHTML = `
                 <td>${item.tanggal_masuk}</td>
                 <td>${item.jumlah_telur} Butir</td>
                 <td>${item.sumber}</td>
+                <td>${timerHtml}</td>
                 <td><span style="${badgeClass}">${(item.status || '-').toUpperCase()}</span></td>
                 <td>
                     <button class="btn btn-secondary btn-sm" onclick="InkubatorManager.edit(${item.id})"><i class="fas fa-edit"></i></button>
@@ -41,6 +62,41 @@ class InkubatorManager {
             `;
             tbody.appendChild(tr);
         });
+
+        // Start Timer
+        this.startTimer();
+    }
+
+    static startTimer() {
+        const updateTick = () => {
+            const now = new Date().getTime();
+            document.querySelectorAll('.countdown-timer').forEach(el => {
+                const target = new Date(el.dataset.target).getTime();
+                const diff = target - now;
+
+                if (diff < 0) {
+                    el.innerHTML = '<span style="color:red; animation: blink 1s infinite;">Waktunya Menetas!</span>';
+                    return;
+                }
+
+                // Calc Time
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+                el.innerText = `${days}h ${hours}j ${minutes}m ${seconds}s`;
+            });
+        };
+
+        updateTick(); // Run once immediately
+        this.timerInterval = setInterval(updateTick, 1000);
+    }
+
+    static exportData() {
+        if (!this.data) return alert('Data belum dimuat.');
+        const headers = ['tanggal_masuk', 'jumlah_telur', 'sumber', 'status', 'estimasi_menetas'];
+        ExportManager.toCSV('Laporan_Inkubasi', headers, this.data);
     }
 
     static async save() {

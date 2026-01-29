@@ -6,6 +6,10 @@
 document.addEventListener('DOMContentLoaded', () => {
     Auth.check(); // Redirect if not logged in
     
+    // Display Admin Name
+    const nameEl = document.getElementById('adminName');
+    if (nameEl) nameEl.innerText = Auth.getCurrentName();
+
     // UI Init
     SidebarManager.init();
     
@@ -19,27 +23,47 @@ document.addEventListener('DOMContentLoaded', () => {
 
 const SidebarManager = {
     init() {
-        // Nav Click handling
-        document.querySelectorAll('.nav-item[data-target]').forEach(item => {
-            item.addEventListener('click', () => {
-                // Active State
-                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-                item.classList.add('active');
+        const navContainer = document.querySelector('.nav-links');
+        if (!navContainer) return;
 
-                // Show Section
-                const targetId = item.dataset.target;
-                document.querySelectorAll('.section-content').forEach(s => s.classList.remove('active'));
-                const targetSection = document.getElementById(targetId);
-                if (targetSection) targetSection.classList.add('active');
-                if (targetId === 'pakan') PakanManager.renderTable();
-                if (targetId === 'populasi') PopulasiManager.renderTable();
-                if (targetId === 'admin') AdminManager.renderTable();
+        navContainer.addEventListener('click', (e) => {
+            const item = e.target.closest('.nav-item');
+            if (!item || !item.dataset.target) return;
 
-                // Mobile specific: close sidebar after click
-                if (window.innerWidth <= 768) {
-                    document.getElementById('sidebar').classList.remove('open');
-                }
-            });
+            e.preventDefault();
+            
+            // Console log for debug (will be hidden unless devtools open)
+            console.log('Sidebar Click:', item.dataset.target);
+
+            // Active State
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            item.classList.add('active');
+
+            // Show Section
+            const targetId = item.dataset.target;
+            document.querySelectorAll('.section-content').forEach(s => s.classList.remove('active'));
+            
+            const targetSection = document.getElementById(targetId);
+            if (targetSection) targetSection.classList.add('active');
+            
+            // Safely Refresh data - Wrapped in try-catch
+            try {
+                if (targetId === 'pakan' && window.PakanManager) PakanManager.renderTable();
+                else if (targetId === 'populasi' && window.PopulasiManager) PopulasiManager.renderTable();
+                else if (targetId === 'admin' && window.AdminManager) AdminManager.renderTable();
+                else if (targetId === 'pembelian' && window.PembelianManager) PembelianManager.renderTable();
+                else if (targetId === 'inkubator' && window.InkubatorManager) InkubatorManager.renderTable();
+                else if (targetId === 'settings' && window.SettingsManager) SettingsManager.init();
+                else if (targetId === 'logs' && window.LogManager) LogManager.renderTable();
+            } catch (err) {
+                console.error('Error loading section:', err);
+            }
+
+            // Mobile specific: close sidebar after click
+            if (window.innerWidth <= 768) {
+                const sb = document.getElementById('sidebar');
+                if(sb) sb.classList.remove('open');
+            }
         });
 
         // Mobile Toggle

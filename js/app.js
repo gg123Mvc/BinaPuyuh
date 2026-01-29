@@ -66,12 +66,12 @@ class Auth {
 
                 if (dbError) {
                     console.error('DB Insert Error:', dbError);
-                    // Optional: Delete auth user if DB insert fails to keep clean state
+                    // Attempt to clean up auth user so they can try again
+                    await sb.auth.admin.deleteUser(data.user.id).catch(() => {}); 
+                    throw new Error('Gagal menyimpan data profil ke database. Kemungkinan blokir izin (RLS). ERROR: ' + dbError.message);
                 }
 
                 // Do NOT login automatically. Ask to wait.
-                // sessionStorage.setItem('IS_LOGGED_IN', 'true');
-                // sessionStorage.setItem('USER_DATA', JSON.stringify(data.user));
                 return true; 
             }
             return false;
@@ -119,11 +119,18 @@ class Auth {
                 sessionStorage.setItem('IS_LOGGED_IN', 'true');
                 return true;
             }
+            
+            // Improve Error Message
+            if (e.message.includes('Invalid login credentials')) {
+                throw new Error('Email atau Password salah. Silakan coba lagi.');
+            }
+            
             throw e; // Rethrow to show specific message
         }
     }
 
     static async logout() {
+        if (window.LogManager) await LogManager.log('AUTH', 'Logout');
         const sb = getSupabase();
         if (sb) await sb.auth.signOut();
         sessionStorage.removeItem('IS_LOGGED_IN');
@@ -144,6 +151,7 @@ class Auth {
              window.location.href = 'login.html';
         }
     }
+
     static getUser() {
         const json = sessionStorage.getItem('USER_DATA');
         if (json) {
@@ -163,6 +171,26 @@ class Auth {
         }
         return 'Admin'; // Fallback
     }
+
+    // SESSION TIMEOUT
+    static initSessionMonitor() {
+        let timeout;
+        const TIMEOUT_LIMIT = 30 * 60 * 1000; // 30 Minutes
+
+        const resetTimer = () => {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                alert('Session expired due to inactivity.');
+                Auth.logout();
+            }, TIMEOUT_LIMIT);
+        };
+
+        window.onload = resetTimer;
+        document.onmousemove = resetTimer;
+        document.onkeypress = resetTimer;
+        document.ontouchstart = resetTimer; 
+        document.onclick = resetTimer;
+    }
 }
 
 // Helpers
@@ -173,3 +201,8 @@ const formatCurrency = (num) => {
 // EXPORT TO WINDOW
 window.Auth = Auth;
 window.SupabaseManager = SupabaseManager;
+
+// Start Monitor if logged in
+if (sessionStorage.getItem('IS_LOGGED_IN')) {
+    Auth.initSessionMonitor();
+}

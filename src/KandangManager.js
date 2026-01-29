@@ -38,6 +38,7 @@ class KandangManager {
                 <td><span style="padding: 2px 8px; border-radius: 10px; background: ${statusColor}; color: white; font-size: 0.75rem;">${usagePercent > 90 ? 'Penuh' : 'Aktif'}</span></td>
                 <td>
                     <div class="action-btn-group">
+                        <button class="btn btn-primary btn-sm" onclick="KandangDetailManager.show(${kp.id})"><i class="fas fa-eye"></i> Detail</button>
                         <button class="btn btn-outline btn-sm" onclick="KandangManager.edit(${kp.id})"><i class="fas fa-edit"></i></button>
                         <button class="btn btn-danger btn-sm" onclick="KandangManager.delete(${kp.id})"><i class="fas fa-trash"></i></button>
                     </div>

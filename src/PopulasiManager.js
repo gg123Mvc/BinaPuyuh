@@ -25,6 +25,9 @@ class PopulasiManager {
             return;
         }
 
+        // Store for export
+        this.data = list;
+
         // 2. Fetch Kandang Map
         const { data: kandangs } = await sb.from('kandang').select('id, nama_kandang');
         const kandangMap = {};
@@ -50,6 +53,9 @@ class PopulasiManager {
 
             const kandangName = kandangMap[item.kandang_id] || 'ID: ' + item.kandang_id;
             const dateStr = item.created_at ? new Date(item.created_at).toLocaleDateString('id-ID') : '-';
+            
+            // Enrich for export
+            item.nama_kandang = kandangName;
 
             tr.innerHTML = `
                 <td>${dateStr}</td>
@@ -63,6 +69,12 @@ class PopulasiManager {
             `;
             tbody.appendChild(tr);
         });
+    }
+
+    static exportData() {
+        if (!this.data) return alert('Data belum dimuat.');
+        const headers = ['created_at', 'nama_kandang', 'jenis_perubahan', 'jumlah', 'keterangan'];
+        ExportManager.toCSV('Laporan_Populasi', headers, this.data);
     }
 
     static async save() {
@@ -127,6 +139,23 @@ class PopulasiManager {
         // Refresh Kandang table if visible/init
         if (window.KandangManager) KandangManager.renderTable();
         if (window.DashboardManager) DashboardManager.renderStats();
+
+        // Phase 2: Log to kandang_logs
+        if (window.KandangDetailManager) {
+            let activityType = 'POPULASI_LAINNYA';
+            if (type === 'Masuk') activityType = 'POPULASI_MASUK';
+            else if (type === 'Mati') activityType = 'KEMATIAN';
+            else if (type === 'Jual') activityType = 'JUAL';
+            else if (type === 'Afkir') activityType = 'AFKIR';
+
+            KandangDetailManager.addActivity({
+                kandang_id: kandangId,
+                activity_type: activityType,
+                quantity: count,
+                unit: 'EKOR',
+                notes: `(Riwayat Populasi) ${note || ''}`
+            });
+        }
     }
 
     static async loadKandangOptions() {

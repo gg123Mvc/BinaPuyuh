@@ -28,6 +28,9 @@ class PakanManager {
             return;
         }
 
+        // Store for export
+        this.data = list;
+
         // 2. Fetch Kandang Data manually (to handle missing Foreign Key in DB)
         const { data: kandangs } = await sb.from('kandang').select('id, nama_kandang');
         const kandangMap = {};
@@ -48,6 +51,9 @@ class PakanManager {
             
             // Use manual map, fallback to join if exists, fallback to ID
             let name = kandangMap[item.kandang_id] || 'ID: ' + item.kandang_id;
+            
+            // Enrich data for export just in case
+            item.nama_kandang = name; 
 
             tr.innerHTML = `
                 <td>${date}</td>
@@ -61,6 +67,12 @@ class PakanManager {
             `;
             tbody.appendChild(tr);
         });
+    }
+
+    static exportData() {
+        if (!this.data) return alert('Data belum dimuat.');
+        const headers = ['tanggal', 'nama_kandang', 'jenis_pakan', 'jumlah_pakan', 'catatan'];
+        ExportManager.toCSV('Laporan_Pakan', headers, this.data);
     }
 
     static async getStockStatus() {
@@ -82,6 +94,29 @@ class PakanManager {
         return totalPurchased - totalConsumed;
     }
 
+    static async predictStock() {
+        const sb = window.supabaseClient;
+        // Get last 7 days consumption
+        const today = new Date();
+        const lastWeek = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 7).toISOString();
+
+        const { data: usage } = await sb.from('pemberian_pakan')
+            .select('jumlah_pakan')
+            .gte('tanggal', lastWeek);
+        
+        if (!usage || usage.length === 0) return null;
+
+        const totalUsed = usage.reduce((sum, item) => sum + (item.jumlah_pakan || 0), 0);
+        const avgDaily = totalUsed / 7;
+        
+        if (avgDaily <= 0) return null; // No usage
+
+        const currentStock = await this.getStockStatus();
+        const daysLeft = Math.floor(currentStock / avgDaily);
+        
+        return { avgDaily, daysLeft };
+    }
+
     static async updateStockDisplay() {
         const stockFn = document.getElementById('pak_stock_info');
         if (!stockFn) return;
@@ -89,11 +124,21 @@ class PakanManager {
         stockFn.style.color = 'gray';
 
         const stock = await this.getStockStatus();
-        stockFn.innerText = `Stok Tersedia: ${stock.toLocaleString('id-ID')} Kg`;
+        let predictionText = '';
+        
+        // Add Prediction
+        const prediction = await this.predictStock();
+        if (prediction) {
+            predictionText = ` (Cukup untuk ~${prediction.daysLeft} hari)`;
+        }
+
+        stockFn.innerText = `Stok Tersedia: ${stock.toLocaleString('id-ID')} Kg${predictionText}`;
         
         if (stock <= 0) {
             stockFn.style.color = 'var(--error-color)';
-            stockFn.innerText += ' (Habis!)';
+            stockFn.innerText = 'Stok Habis! (0 Kg)';
+        } else if (prediction && prediction.daysLeft < 3) {
+            stockFn.style.color = 'var(--warning)'; // Low stock warning
         } else {
             stockFn.style.color = 'var(--success-color)';
         }
@@ -136,6 +181,17 @@ class PakanManager {
             this.closeModal();
             this.renderTable();
             alert('Catatan Pakan tersimpan!');
+            
+            // Phase 2: Log to kandang_logs
+            if (window.KandangDetailManager) {
+                KandangDetailManager.addActivity({
+                    kandang_id: kandangId,
+                    activity_type: 'PAKAN',
+                    quantity: amount,
+                    unit: 'KG',
+                    notes: `(Pakan) ${type} - ${note || ''}`
+                });
+            }
         }
     }
 

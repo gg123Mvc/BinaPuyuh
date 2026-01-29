@@ -8,7 +8,20 @@ class PembelianManager {
          if (dateInput) dateInput.valueAsDate = new Date(); // Default today
     }
 
+     static search() {
+        const query = document.getElementById('purchaseSearch').value.toLowerCase();
+        const tbody = document.getElementById('purchaseTableBody');
+        const rows = tbody.getElementsByTagName('tr');
+
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            const text = row.innerText.toLowerCase();
+            row.style.display = text.includes(query) ? '' : 'none';
+        }
+    }
+
     static async renderTable() {
+        // ... (existing render code, ensure we clear search on re-render if wanted, or re-apply)
         const sb = window.supabaseClient;
         if (!sb) return;
 
@@ -18,6 +31,9 @@ class PembelianManager {
             console.warn('Pembelian error:', error);
             return;
         }
+
+        // Store for export
+        this.data = list;
 
         const tbody = document.getElementById('purchaseTableBody');
         if (!tbody) return;
@@ -37,6 +53,18 @@ class PembelianManager {
             `;
             tbody.appendChild(tr);
         });
+        
+        // Re-apply search if exists
+        const currentSearch = document.getElementById('purchaseSearch');
+        if (currentSearch && currentSearch.value) {
+            this.search();
+        }
+    }
+
+    static exportData() {
+        if (!this.data) return alert('Data belum dimuat.');
+        const headers = ['tanggal', 'nama_barang', 'kategori', 'jumlah', 'harga_total'];
+        ExportManager.toCSV('Laporan_Pembelian', headers, this.data);
     }
 
     static async save() {

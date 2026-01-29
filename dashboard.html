@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Puyuh Farm</title>
-    <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet" href="./css/style.css?v=2024">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Chart.js for beautiful charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -13,6 +13,19 @@
         .section-content.active { display: block; opacity: 1; }
         
         .action-btn-group { display: flex; gap: 0.5rem; }
+    </style>
+    <style>
+        .search-container {
+            margin-bottom: 1rem;
+            display: flex;
+            gap: 10px;
+        }
+        .search-input {
+            flex: 1;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
@@ -49,6 +62,14 @@
                 <div class="nav-item" data-target="admin">
                     <i class="fas fa-users-cog"></i> Data Admin
                 </div>
+                <!-- Settings Link -->
+                <div class="nav-item" data-target="settings">
+                    <i class="fas fa-cog"></i> Pengaturan
+                </div>
+                <!-- Logs Link -->
+                <div class="nav-item" data-target="logs">
+                    <i class="fas fa-history"></i> Log Aktivitas
+                </div>
                 <div class="nav-item" onclick="Auth.logout()">
                     <i class="fas fa-sign-out-alt"></i> Logout
                 </div>
@@ -68,6 +89,11 @@
                         <i class="fas fa-user"></i>
                     </div>
                 </div>
+            </div>
+
+            <!-- CMS / ANNOUNCEMENT CONTAINER -->
+            <div id="announcement-container" style="display:none; margin-bottom: 2rem;">
+                <!-- Filled by CmsManager -->
             </div>
 
             <!-- SECTION: OVERVIEW -->
@@ -99,9 +125,11 @@
             <!-- SECTION: KANDANG -->
             <div id="kandang" class="section-content">
                 <div class="card">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <div class="section-header">
                         <h3>Daftar Kandang & Populasi</h3>
-                        <button class="btn btn-primary" onclick="KandangManager.openModal()"><i class="fas fa-plus"></i> Tambah Kandang</button>
+                        <div class="action-btn-group">
+                             <button class="btn btn-primary" onclick="KandangManager.openModal()"><i class="fas fa-plus"></i> Tambah Kandang</button>
+                        </div>
                     </div>
                     <div style="overflow-x: auto;">
                         <table>
@@ -128,14 +156,21 @@
                 <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem;">
                     <!-- Form Input -->
                     <div class="card">
-                        <h3 class="mb-3">Input Pembelian Baru</h3>
+                        <div class="section-header">
+                            <h3>Input Pembelian Baru</h3>
+                            <div class="action-btn-group">
+                                 <button class="btn btn-secondary btn-sm" onclick="PembelianManager.exportData()">
+                                    <i class="fas fa-file-csv"></i> Export CSV
+                                 </button>
+                            </div>
+                        </div>
                         <form id="purchaseForm" onsubmit="event.preventDefault(); PembelianManager.save();">
                             <div class="form-group">
-                                <label class="form-label">Nama Item</label>
+                                <label class="form-label" for="p_item">Nama Item</label>
                                 <input type="text" id="p_item" class="form-input" required placeholder="Contoh: Pakan A">
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Kategori</label>
+                                <label class="form-label" for="p_category">Kategori</label>
                                 <select id="p_category" class="form-input">
                                     <option value="Pakan">Pakan</option>
                                     <option value="Obat">Obat / Vitamin</option>
@@ -144,42 +179,52 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Jumlah</label>
+                                <label class="form-label" for="p_qty">Jumlah</label>
                                 <input type="number" id="p_qty" class="form-input" required min="1">
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Harga Satuan (Rp)</label>
+                                <label class="form-label" for="p_price">Harga Satuan (Rp)</label>
                                 <input type="number" id="p_price" class="form-input" required min="0">
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Tanggal</label>
+                                <label class="form-label" for="p_date">Tanggal</label>
                                 <input type="date" id="p_date" class="form-input" required>
                             </div>
                             <button type="submit" class="btn btn-primary" style="width: 100%;">Simpan Transaksi</button>
                         </form>
                     </div>
 
-                    <!-- History Table -->
-                    <div class="card">
-                        <h3 class="mb-3">Riwayat Pembelian</h3>
-                        <div style="overflow-x: auto;">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Tanggal</th>
-                                        <th>Item</th>
-                                        <th>Kategori</th>
-                                        <th>Jml</th>
-                                        <th>Total</th>
-                                        <th>Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="purchaseTableBody">
-                                    <!-- Populated by JS -->
-                                </tbody>
-                            </table>
+                    <div class="dashboard-grid">
+                        <!-- ADD BUTTON FOR CMS -->
+                        <div class="card" onclick="CmsManager.add()" style="cursor:pointer; border: 2px dashed #ddd; display:flex; align-items:center; justify-content:center; flex-direction:column; min-height: 150px;">
+                             <i class="fas fa-bullhorn" style="font-size: 2rem; color: #ccc; margin-bottom:0.5rem"></i>
+                             <span style="color:#888">Buat Pengumuman Baru</span>
                         </div>
 
+                        <div class="card">
+                            <h3>Riwayat Pembelian</h3>
+                            <div class="search-container">
+                                <input type="text" id="purchaseSearch" class="search-input" placeholder="Cari item atau kategori...">
+                                <button class="btn btn-secondary" onclick="PembelianManager.search()">Cari</button>
+                            </div>
+                            <div style="overflow-x: auto;">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Tanggal</th>
+                                            <th>Item</th>
+                                            <th>Kategori</th>
+                                            <th>Jml</th>
+                                            <th>Total</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="purchaseTableBody">
+                                        <!-- Populated by JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -187,9 +232,14 @@
             <!-- SECTION: PAKAN -->
             <div id="pakan" class="section-content">
                 <div class="card">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                     <div class="section-header">
                         <h3>Riwayat Pemberian Pakan</h3>
-                        <button class="btn btn-primary" onclick="PakanManager.openModal()"><i class="fas fa-plus"></i> Catat Pakan</button>
+                        <div class="action-btn-group">
+                            <button class="btn btn-secondary btn-sm" onclick="PakanManager.exportData()">
+                                <i class="fas fa-file-csv"></i> Export CSV
+                            </button>
+                            <button class="btn btn-primary" onclick="PakanManager.openModal()"><i class="fas fa-plus"></i> Catat Pakan</button>
+                        </div>
                     </div>
                     <div style="overflow-x: auto;">
                         <table>
@@ -214,11 +264,16 @@
             <!-- SECTION: INKUBATOR -->
             <div id="inkubator" class="section-content">
                 <div class="card">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+                    <div class="section-header">
                         <h3>Data Inkubator</h3>
-                        <button class="btn btn-primary" onclick="InkubatorManager.openModal()">
-                            <i class="fas fa-plus"></i> Tambah Data
-                        </button>
+                        <div class="action-btn-group">
+                             <button class="btn btn-secondary btn-sm" onclick="InkubatorManager.exportData()">
+                                <i class="fas fa-file-csv"></i> Export CSV
+                            </button>
+                            <button class="btn btn-primary" onclick="InkubatorManager.openModal()">
+                                <i class="fas fa-plus"></i> Tambah Data
+                            </button>
+                        </div>
                     </div>
 
                     <div style="overflow-x:auto">
@@ -228,6 +283,7 @@
                                     <th>Tanggal Masuk</th>
                                     <th>Jumlah Telur</th>
                                     <th>Sumber</th>
+                                    <th>Estimasi / Timer</th>
                                     <th>Status</th>
                                     <th>Aksi</th>
                                 </tr>
@@ -241,11 +297,16 @@
             <!-- SECTION: POPULASI -->
             <div id="populasi" class="section-content">
                 <div class="card">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+                     <div class="section-header">
                         <h3>Riwayat Populasi (Mati/Jual)</h3>
-                        <button class="btn btn-primary" onclick="PopulasiManager.openModal()">
-                            <i class="fas fa-plus"></i> Catat Perubahan
-                        </button>
+                        <div class="action-btn-group">
+                             <button class="btn btn-secondary btn-sm" onclick="PopulasiManager.exportData()">
+                                <i class="fas fa-file-csv"></i> Export CSV
+                            </button>
+                            <button class="btn btn-primary" onclick="PopulasiManager.openModal()">
+                                <i class="fas fa-plus"></i> Catat Perubahan
+                            </button>
+                        </div>
                     </div>
 
                     <div style="overflow-x:auto">
@@ -269,9 +330,9 @@
             <!-- SECTION: ADMIN MANAGER -->
             <div id="admin" class="section-content">
                 <div class="card">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+                     <div class="section-header">
                         <h3>Manajemen Admin</h3>
-                        <div>
+                        <div class="action-btn-group">
                             <button class="btn btn-outline btn-sm" onclick="AdminManager.renderTable(true)">
                                 <i class="fas fa-sync-alt"></i> Refresh Data
                             </button>
@@ -291,6 +352,66 @@
                             <tbody id="adminTableBody"></tbody>
                         </table>
                     </div>
+                </div>
+            </div>
+
+            <!-- SECTION: LOGS -->
+            <div id="logs" class="section-content">
+                <div class="card">
+                    <h3>Log Aktivitas Sistem</h3>
+                    <div style="margin-bottom: 1rem; text-align: right;">
+                        <button class="btn btn-outline btn-sm" onclick="LogManager.renderTable()">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                    </div>
+                    <div style="overflow-x:auto">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Waktu</th>
+                                    <th>User</th>
+                                    <th>Aksi</th>
+                                    <th>Detail</th>
+                                </tr>
+                            </thead>
+                            <tbody id="logTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION: SETTINGS -->
+            <div id="settings" class="section-content">
+                <div class="card" style="max-width: 600px; margin: 0 auto;">
+                    <h3>Pengaturan Profil</h3>
+                    <hr style="border-color: rgba(255,255,255,0.1); margin: 1rem 0;">
+                    
+                    <form onsubmit="event.preventDefault(); SettingsManager.updateProfile();">
+                        <div class="form-group">
+                            <label class="form-label">Email (Login)</label>
+                            <input type="text" id="set_email" class="form-input" readonly style="background: rgba(255,255,255,0.05); color: #aaa;">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Nama Lengkap</label>
+                            <input type="text" id="set_fullName" class="form-input" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Simpan Profil</button>
+                    </form>
+
+                    <h3 style="margin-top: 2rem;">Ganti Password</h3>
+                    <hr style="border-color: rgba(255,255,255,0.1); margin: 1rem 0;">
+                    
+                    <form onsubmit="event.preventDefault(); SettingsManager.changePassword();">
+                        <div class="form-group">
+                            <label class="form-label">Password Baru</label>
+                            <input type="password" id="set_newPass" class="form-input" placeholder="Minimal 6 Karkater">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Konfirmasi Password Baru</label>
+                            <input type="password" id="set_confirmPass" class="form-input" placeholder="Ulangi Password Baru">
+                        </div>
+                        <button type="submit" class="btn btn-danger">Update Password</button>
+                    </form>
                 </div>
             </div>
 
@@ -329,26 +450,26 @@
             <form id="inkubatorForm" onsubmit="event.preventDefault(); InkubatorManager.save();">
                 <input type="hidden" id="ink_id">
                 <div class="form-group">
-                    <label class="form-label">Tanggal Masuk</label>
+                    <label class="form-label" for="ink_date">Tanggal Masuk</label>
                     <input type="date" id="ink_date" class="form-input" required onchange="InkubatorManager.calcEstimation()">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Estimasi Menetas (+17 Hari)</label>
+                    <label class="form-label" for="ink_estimation">Estimasi Menetas (+17 Hari)</label>
                     <input type="text" id="ink_estimation" class="form-input" readonly style="background: rgba(255,255,255,0.05); color: var(--warning);">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Jumlah Telur</label>
+                    <label class="form-label" for="ink_count">Jumlah Telur</label>
                     <input type="number" id="ink_count" class="form-input" required min="1">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Sumber Telur</label>
+                    <label class="form-label" for="ink_source">Sumber Telur</label>
                     <select id="ink_source" class="form-select">
                         <option value="produksi">Produksi Sendiri</option>
                         <option value="beli">Beli dari Luar</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Status</label>
+                    <label class="form-label" for="ink_status">Status</label>
                     <select id="ink_status" class="form-select">
                         <option value="inkubasi">Proses Inkubasi</option>
                         <option value="menetas">Sudah Menetas</option>
@@ -439,29 +560,78 @@
         </div>
     </div>
 
+    <!-- MODAL DETAIL KANDANG (Timeline) -->
+    <div id="kandangDetailModal" class="modal">
+        <div class="modal-content" style="max-height: 80vh; overflow-y: auto;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem">
+                <h3 id="kandangDetailTitle">Detail Aktivitas</h3>
+                <button class="btn btn-outline btn-sm" onclick="KandangDetailManager.closeModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <input type="hidden" id="detail_kandang_id">
+            
+            <div id="activityTimeline">
+                <!-- Timelines go here -->
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="./js/config.js"></script>
     <script src="./js/app.js"></script>
     <script src="./js/modal.js"></script>
+    <script src="./js/export.js"></script>
+    <script src="./src/LogManager.js"></script>
+    <script src="./src/CmsManager.js"></script>
+    <script src="./src/SettingsManager.js"></script>
     <script src="./src/InkubatorManager.js"></script>
     <script src="./src/KandangManager.js"></script>
     <script src="./src/PembelianManager.js"></script>
     <script src="./src/PakanManager.js"></script>
     <script src="./src/PopulasiManager.js"></script>
     <script src="./src/AdminManager.js"></script>
-    <script src="./js/dashboard.js"></script>
+    <script src="./src/DebugManager.js"></script>
+    <script src="./src/KandangDetailManager.js"></script> <!-- New Manager -->
+    <script src="./js/dashboard.js?v=999"></script>
     <script>
-        // Init all sections if present in dashboard
+        // Init all sections with Safety Checks
         document.addEventListener('DOMContentLoaded', () => {
-            if(window.KandangManager) KandangManager.renderTable();
-            if(window.PembelianManager) PembelianManager.renderTable();
-            if(window.InkubatorManager) InkubatorManager.renderTable();
-            if(window.PakanManager) {
+            console.log('🚀 Dashboard Init Started');
+            
+            if (!window.supabaseClient) {
+                alert('CRITICAL ERROR: Supabase Client failed to load. Check js/config.js');
+                return;
+            }
+
+            const safeInit = (name, fn) => {
+                try {
+                    if (window[name]) {
+                        fn();
+                        console.log(`✅ ${name} Initialized`);
+                    } else {
+                        console.warn(`⚠️ ${name} script not loaded`);
+                    }
+                } catch (e) {
+                    console.error(`❌ ${name} Error:`, e);
+                    // Optional: alert(`Error initializing ${name}: ${e.message}`);
+                }
+            };
+
+            safeInit('KandangManager', () => KandangManager.renderTable());
+            safeInit('PembelianManager', () => PembelianManager.renderTable());
+            safeInit('InkubatorManager', () => InkubatorManager.renderTable());
+            safeInit('PakanManager', () => {
                 PakanManager.loadKandangOptions();
                 PakanManager.renderTable();
+            });
+            safeInit('PopulasiManager', () => PopulasiManager.renderTable());
+            safeInit('AdminManager', () => AdminManager.renderTable());
+            safeInit('SettingsManager', () => SettingsManager.init());
+            safeInit('CmsManager', () => CmsManager.render());
+            
+            // Auto-refresh Debug Status if manager exists
+            if (window.DebugManager) {
+                // DebugManager.runCheck(); // Uncomment to auto-run on load
             }
-            if(window.PopulasiManager) PopulasiManager.renderTable();
-            if(window.AdminManager) AdminManager.renderTable();
         });
     </script>
 </body>
