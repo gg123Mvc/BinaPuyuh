@@ -105,8 +105,7 @@ class PembelianManager {
             if(window.DashboardManager && typeof DashboardManager.renderStats === 'function') {
                 DashboardManager.renderStats();
             }
-            document.getElementById('purchaseForm').reset();
-            document.getElementById('p_date').valueAsDate = new Date();
+            this.closeModal(); // Close modal on success
             alert('Transaksi berhasil disimpan!');
         }
     }
@@ -124,6 +123,16 @@ class PembelianManager {
                 }
             }
         }
+    }
+
+    static openModal() {
+        document.getElementById('purchaseForm').reset();
+        document.getElementById('p_date').valueAsDate = new Date(); // Reset date to today
+        document.getElementById('pembelianModal').classList.add('open');
+    }
+
+    static closeModal() {
+        document.getElementById('pembelianModal').classList.remove('open');
     }
 }
 

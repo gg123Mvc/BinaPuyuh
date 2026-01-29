@@ -36,7 +36,7 @@
             <div class="sidebar-header">
                 <img src="./assets/logo.png" alt="Logo" class="sidebar-logo-img">
                 <span style="font-weight: 700; font-size: 1.1rem; letter-spacing: 0.5px;">PUYUH FARM</span>
-                <button id="closeSidebar" class="btn-outline" style="margin-left: auto; border:none; color:white; display:none;"><i class="fas fa-times"></i></button>
+                <button id="closeSidebar" class="btn-outline mobile-visible" style="margin-left: auto; border:none; color:white;"><i class="fas fa-times"></i></button>
             </div>
             
             <nav class="nav-links">
@@ -80,7 +80,7 @@
         <main class="main-content">
             <div class="top-bar">
                 <div style="display: flex; align-items: center; gap: 1rem;">
-                    <button class="btn btn-outline" id="toggleSidebar" style="padding: 0.5rem; display: none;"><i class="fas fa-bars"></i></button>
+                    <button class="btn btn-outline mobile-visible" id="toggleSidebar" style="padding: 0.5rem;"><i class="fas fa-bars"></i></button>
                     <h2>Dashboard</h2>
                 </div>
                 <div style="display: flex; align-items: center; gap: 1rem;">
@@ -153,78 +153,40 @@
 
             <!-- SECTION: PEMBELIAN -->
             <div id="pembelian" class="section-content">
-                <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem;">
-                    <!-- Form Input -->
-                    <div class="card">
-                        <div class="section-header">
-                            <h3>Input Pembelian Baru</h3>
-                            <div class="action-btn-group">
-                                 <button class="btn btn-secondary btn-sm" onclick="PembelianManager.exportData()">
-                                    <i class="fas fa-file-csv"></i> Export CSV
-                                 </button>
-                            </div>
+                <div class="card">
+                    <div class="section-header">
+                        <h3>Riwayat Pembelian</h3>
+                        <div class="action-btn-group">
+                             <button class="btn btn-secondary btn-sm" onclick="PembelianManager.exportData()">
+                                <i class="fas fa-file-csv"></i> Export CSV
+                             </button>
+                             <button class="btn btn-primary" onclick="PembelianManager.openModal()">
+                                <i class="fas fa-plus"></i> Input Pembelian
+                             </button>
                         </div>
-                        <form id="purchaseForm" onsubmit="event.preventDefault(); PembelianManager.save();">
-                            <div class="form-group">
-                                <label class="form-label" for="p_item">Nama Item</label>
-                                <input type="text" id="p_item" class="form-input" required placeholder="Contoh: Pakan A">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label" for="p_category">Kategori</label>
-                                <select id="p_category" class="form-input">
-                                    <option value="Pakan">Pakan</option>
-                                    <option value="Obat">Obat / Vitamin</option>
-                                    <option value="Perlengkapan">Perlengkapan</option>
-                                    <option value="Lainnya">Lainnya</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label" for="p_qty">Jumlah</label>
-                                <input type="number" id="p_qty" class="form-input" required min="1">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label" for="p_price">Harga Satuan (Rp)</label>
-                                <input type="number" id="p_price" class="form-input" required min="0">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label" for="p_date">Tanggal</label>
-                                <input type="date" id="p_date" class="form-input" required>
-                            </div>
-                            <button type="submit" class="btn btn-primary" style="width: 100%;">Simpan Transaksi</button>
-                        </form>
                     </div>
 
-                    <div class="dashboard-grid">
-                        <!-- ADD BUTTON FOR CMS -->
-                        <div class="card" onclick="CmsManager.add()" style="cursor:pointer; border: 2px dashed #ddd; display:flex; align-items:center; justify-content:center; flex-direction:column; min-height: 150px;">
-                             <i class="fas fa-bullhorn" style="font-size: 2rem; color: #ccc; margin-bottom:0.5rem"></i>
-                             <span style="color:#888">Buat Pengumuman Baru</span>
-                        </div>
+                    <div class="search-container">
+                        <input type="text" id="purchaseSearch" class="search-input" placeholder="Cari item atau kategori...">
+                        <button class="btn btn-secondary" onclick="PembelianManager.search()">Cari</button>
+                    </div>
 
-                        <div class="card">
-                            <h3>Riwayat Pembelian</h3>
-                            <div class="search-container">
-                                <input type="text" id="purchaseSearch" class="search-input" placeholder="Cari item atau kategori...">
-                                <button class="btn btn-secondary" onclick="PembelianManager.search()">Cari</button>
-                            </div>
-                            <div style="overflow-x: auto;">
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th>Tanggal</th>
-                                            <th>Item</th>
-                                            <th>Kategori</th>
-                                            <th>Jml</th>
-                                            <th>Total</th>
-                                            <th>Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="purchaseTableBody">
-                                        <!-- Populated by JS -->
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+                    <div style="overflow-x: auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Tanggal</th>
+                                    <th>Item</th>
+                                    <th>Kategori</th>
+                                    <th>Jml</th>
+                                    <th>Total</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="purchaseTableBody">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -634,5 +596,42 @@
             }
         });
     </script>
+    <!-- MODAL PEMBELIAN -->
+    <div id="pembelianModal" class="modal">
+        <div class="modal-content">
+            <h3 class="mb-3">Input Pembelian</h3>
+            <form id="purchaseForm" onsubmit="event.preventDefault(); PembelianManager.save();">
+                <div class="form-group">
+                    <label class="form-label" for="p_item">Nama Item</label>
+                    <input type="text" id="p_item" class="form-input" required placeholder="Contoh: Pakan A">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="p_category">Kategori</label>
+                    <select id="p_category" class="form-input">
+                        <option value="Pakan">Pakan</option>
+                        <option value="Obat">Obat / Vitamin</option>
+                        <option value="Perlengkapan">Perlengkapan</option>
+                        <option value="Lainnya">Lainnya</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="p_qty">Jumlah</label>
+                    <input type="number" id="p_qty" class="form-input" required min="1">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="p_price">Harga Satuan (Rp)</label>
+                    <input type="number" id="p_price" class="form-input" required min="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="p_date">Tanggal</label>
+                    <input type="date" id="p_date" class="form-input" required>
+                </div>
+                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1rem;">
+                    <button type="button" class="btn btn-secondary" onclick="PembelianManager.closeModal()">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </body>
 </html>

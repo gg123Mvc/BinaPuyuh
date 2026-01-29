@@ -46,6 +46,7 @@ body {
   color: var(--light-text);
   line-height: 1.6;
   min-height: 100vh;
+  overflow-x: hidden; /* Prevent horizontal scroll on mobile */
 }
 
 a { text-decoration: none; color: inherit; }
@@ -309,6 +310,19 @@ tr:hover td { background: rgba(255, 255, 255, 0.06); }
   gap: 1rem;
 }
 
+/* Responsive Split Layput (1:2 ratio on desktop, stacked on mobile) */
+.dashboard-split-grid {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 1.5rem;
+}
+
+@media (max-width: 900px) {
+    .dashboard-split-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 @media (max-width: 500px) {
   .section-header {
     flex-direction: column;
@@ -333,8 +347,26 @@ tr:hover td { background: rgba(255, 255, 255, 0.06); }
 @media (max-width: 768px) {
   .sidebar { transform: translateX(-100%); width: 280px; }
   .sidebar.open { transform: translateX(0); }
-  .main-content { margin-left: 0; padding: 1rem; }
+  
+  /* Reduced padding for mobile to prevent stiffness */
+  .main-content { margin-left: 0; padding: 1rem 0.5rem; }
+  
+  /* Compact cards on mobile */
+  .card { padding: 1rem; border-radius: var(--radius-md); }
+  
+  /* Helper for mobile toggle visibility */
+  .mobile-visible { display: block !important; }
+
+  /* Compact form inputs */
+  .form-input, .form-select { padding: 0.7rem 0.8rem; font-size: 0.9rem; }
+  
+  /* Adjust Headers */
+  h1, h2 { font-size: 1.5rem; }
+  h3 { font-size: 1.2rem; }
 }
+
+/* Base state for mobile toggles */
+.mobile-visible { display: none; }
 
 /* Animations */
 @keyframes fadeIn {

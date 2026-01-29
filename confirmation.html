@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Konfirmasi Email - Puyuh Farm</title>
+    <link rel="stylesheet" href="./css/style.css?v=2024">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <div class="auth-page">
+        <div class="auth-card" style="text-align: center;">
+            <div id="statusIcon" style="font-size: 4rem; margin-bottom: 1rem;">
+                <i class="fas fa-circle-notch fa-spin" style="color: var(--info);"></i>
+            </div>
+            
+            <h2 id="statusTitle" style="margin-bottom: 0.5rem; color:white;">Memproses...</h2>
+            <p id="statusMessage" style="color: var(--dim-text); margin-bottom: 2rem;">Mohon tunggu sebentar, kami sedang memverifikasi link Anda.</p>
+            
+            <div id="actionButtons" style="display: none;">
+                <a href="login.html" class="btn btn-primary" style="width: 100%;">Kembali ke Login</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="./js/config.js"></script> <!-- Defines window.supabaseClient -->
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const statusIcon = document.getElementById('statusIcon');
+            const statusTitle = document.getElementById('statusTitle');
+            const statusMessage = document.getElementById('statusMessage');
+            const actionButtons = document.getElementById('actionButtons');
+
+            // 1. Get URL Hash parameters (Supabase sends errors/tokens in hash)
+            const hash = window.location.hash.substring(1);
+            const params = new URLSearchParams(hash);
+            
+            const error = params.get('error');
+            const errorDesc = params.get('error_description');
+            const accessToken = params.get('access_token');
+            const type = params.get('type'); // signup, recovery, magiclink
+
+            // Helper to set UI state
+            const setUI = (state, title, msg) => {
+                statusTitle.innerText = title;
+                statusMessage.innerText = msg;
+                actionButtons.style.display = 'block';
+
+                if (state === 'success') {
+                    statusIcon.innerHTML = '<i class="fas fa-check-circle" style="color: var(--success);"></i>';
+                } else {
+                    statusIcon.innerHTML = '<i class="fas fa-times-circle" style="color: var(--danger);"></i>';
+                }
+            };
+
+            // 2. Handle Errors explicitly
+            if (error) {
+                console.error('Auth Error:', error, errorDesc);
+                // Translate common errors if possible
+                let friendlyMsg = errorDesc.replace(/\+/g, ' ');
+                if (friendlyMsg.includes('expired')) friendlyMsg = "Link konfirmasi sudah kedaluwarsa. Silakan coba register atau login ulang.";
+                
+                setUI('error', 'Gagal Verifikasi', friendlyMsg);
+                return;
+            }
+
+            // 3. Handle Success (Token exists) or existing session
+            // If tokens are in hash, Supabase client automatically processes them on init/getSession usually,
+            // but we can manually check or just wait for onAuthStateChange.
+            
+            // Let's rely on Supabase detection first
+            const sb = window.supabaseClient;
+            
+            if (accessToken) {
+                // Token is present, implies success redirect
+                setUI('success', 'Email Terkonfirmasi!', 'Akun Anda berhasil diverifikasi. Silakan login untuk melanjutkan.');
+            } else {
+                // No token, check if we have an active session (maybe they clicked a link and it auto-authed)
+                const { data } = await sb.auth.getSession();
+                if (data.session) {
+                     setUI('success', 'Sudah Terkonfirmasi', 'Anda sudah login. Silakan masuk ke dashboard.');
+                     actionButtons.innerHTML = '<a href="dashboard.html" class="btn btn-primary" style="width:100%">Masuk Dashboard</a>';
+                } else {
+                    // No error, no token, no session -> Just a random visit?
+                    setUI('error', 'Link Tidak Valid', 'Link yang Anda gunakan tidak valid atau tidak lengkap.');
+                }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -72,14 +72,12 @@ const SidebarManager = {
         const sidebar = document.getElementById('sidebar');
 
         if (toggleBtn) {
-            toggleBtn.style.display = window.innerWidth <= 768 ? 'block' : 'none';
+            // CSS handles display now (.mobile-visible)
             toggleBtn.addEventListener('click', () => sidebar.classList.add('open'));
         }
         if (closeBtn) closeBtn.addEventListener('click', () => sidebar.classList.remove('open'));
 
-        window.addEventListener('resize', () => {
-            if (toggleBtn) toggleBtn.style.display = window.innerWidth <= 768 ? 'block' : 'none';
-        });
+        // Resize listener removed as CSS handles it
     }
 };
 
