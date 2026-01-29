@@ -115,7 +115,31 @@
                 submitBtn.disabled = true;
                 submitBtn.innerText = 'MEMPROSES...';
 
+                submitBtn.innerText = 'MEMPROSES...';
+
                 try {
+                    // --- RATE LIMIT CHECK ---
+                    const MAX_ATTEMPTS = 3;
+                    const LOCKOUT_TIME = 60 * 60 * 1000; // 1 Hour
+                    const now = Date.now();
+                    
+                    let attempts = parseInt(localStorage.getItem('puyuh_reg_attempts') || '0');
+                    let lastAttempt = parseInt(localStorage.getItem('puyuh_reg_last') || '0');
+
+                    // Reset if lockout time passed
+                    if (now - lastAttempt > LOCKOUT_TIME) {
+                        attempts = 0;
+                    }
+
+                    if (attempts >= MAX_ATTEMPTS) {
+                        throw new Error('rate limit reached');
+                    }
+
+                    // Increment attempts
+                    localStorage.setItem('puyuh_reg_attempts', attempts + 1);
+                    localStorage.setItem('puyuh_reg_last', now);
+                    // -------------------------
+
                     const success = await Auth.register(email, pass, fullName);
                     if (success) {
                         alert('Registrasi berhasil! Silakan tunggu persetujuan Admin sebelum bisa login.');
