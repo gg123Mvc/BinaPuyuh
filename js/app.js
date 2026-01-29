@@ -66,8 +66,14 @@ class Auth {
 
                 if (dbError) {
                     console.error('DB Insert Error:', dbError);
+                    
                     // Attempt to clean up auth user so they can try again
                     await sb.auth.admin.deleteUser(data.user.id).catch(() => {}); 
+                    
+                    if (dbError.message.includes('foreign key constraint')) {
+                       throw new Error('KONFIGURASI DATABASE SALAH: Tabel "admins" membutuhkan ID User yang valid. Pastikan Foreign Key mengarah ke "auth.users" atau Anda memiliki Trigger yang sesuai.');
+                    }
+
                     throw new Error('Gagal menyimpan data profil ke database. Kemungkinan blokir izin (RLS). ERROR: ' + dbError.message);
                 }
 
