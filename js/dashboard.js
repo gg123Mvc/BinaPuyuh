@@ -241,7 +241,7 @@ const DashboardManager = {
             dailyEggs, 
             'Produksi Telur Harian',
             '#2E7D32',
-            null // No empty state ID defined for production chart in HTML yet, or reuse existing
+            'productionEmpty'
         );
         
         // Hide Expense Daily Chart if not used anymore or keep it?
@@ -330,14 +330,21 @@ const DashboardManager = {
 
     renderLineChart(canvasId, labels, data, label, color, emptyId) {
         const ctx = document.getElementById(canvasId);
+        const emptyEl = emptyId ? document.getElementById(emptyId) : null;
         if (!ctx) return;
         
         if (this.charts[canvasId]) this.charts[canvasId].destroy();
         
-        // Note: For line chart, even if all 0, we usually show the flat line?
-        // But if strict "No Data" needed:
-        const hasData = data.some(v => v > 0);
-         // If generic empty handling needed, add here.
+        // Strict empty check: Is array empty or all 0?
+        if (data.length === 0 || data.every(v => v === 0)) {
+             ctx.style.display = 'none';
+             if (emptyEl) emptyEl.style.display = 'block';
+             return;
+        }
+
+        // Reset visibility
+        ctx.style.display = 'block';
+        if (emptyEl) emptyEl.style.display = 'none';
         
         this.charts[canvasId] = new Chart(ctx, {
             type: 'line',
