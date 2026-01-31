@@ -5,7 +5,7 @@
 class PembelianManager {
     static init() {
          const dateInput = document.getElementById('p_date');
-         if (dateInput) dateInput.valueAsDate = new Date(); // Default today
+         if (dateInput) setDateToToday('p_date'); // Flatpickr compatible
     }
 
      static search() {
@@ -21,30 +21,49 @@ class PembelianManager {
     }
 
     static async renderTable() {
-        // ... (existing render code, ensure we clear search on re-render if wanted, or re-apply)
+        console.log('🔍 PembelianManager.renderTable() called');
         const sb = window.supabaseClient;
-        if (!sb) return;
+        if (!sb) {
+            console.error('❌ Supabase client not found');
+            return;
+        }
+        console.log('✅ Supabase client OK');
 
+        const tbody = document.getElementById('purchaseTableBody');
+        if (!tbody) {
+            console.error('❌ purchaseTableBody element not found!');
+            return;
+        }
+        console.log('✅ tbody element found');
+        
+        // Clear table explicitly before fetch to avoid duplicates
+        tbody.innerHTML = '';
+
+        console.log('📡 Fetching pembelian data...');
         const { data: list, error } = await sb.from('pembelian').select('*').order('tanggal', { ascending: false });
         
         if (error) {
-            console.warn('Pembelian error:', error);
+            console.error('❌ Pembelian fetch error:', error);
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center" style="padding: 2rem;">Gagal memuat data.</td></tr>`;
             return;
         }
 
-        // Store for export
+        console.log(`✅ Data fetched: ${list ? list.length : 0} rows`);
         this.data = list;
 
-        const tbody = document.getElementById('purchaseTableBody');
-        if (!tbody) return;
-        tbody.innerHTML = '';
+        if (list.length === 0) {
+            console.log('⚠️ Empty data');
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center" style="padding: 2rem; color: var(--dim-text);">Belum ada data pembelian.</td></tr>`;
+            return;
+        }
 
-        list.forEach(p => {
+        console.log('📝 Rendering rows...');
+        list.forEach((p, index) => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${p.tanggal}</td>
                 <td>${p.nama_barang}</td>
-                <td><span style="font-size:0.8rem; padding:2px 6px; background:#eee; border-radius:4px;">${p.kategori}</span></td>
+                <td><span style="font-size:0.8rem; padding:2px 6px; background:rgba(255,255,255,0.1); border-radius:4px;">${p.kategori}</span></td>
                 <td>${p.jumlah} ${p.satuan || ''}</td>
                 <td>${formatCurrency(p.harga_total)}</td>
                 <td>
@@ -52,7 +71,10 @@ class PembelianManager {
                 </td>
             `;
             tbody.appendChild(tr);
+            if (index === 0) console.log('✅ First row rendered');
         });
+        
+        console.log(`✅ All ${list.length} rows rendered to DOM`);
         
         // Re-apply search if exists
         const currentSearch = document.getElementById('purchaseSearch');
@@ -71,7 +93,6 @@ class PembelianManager {
         console.log('PembelianManager.save() called');
         const sb = window.supabaseClient;
         const item = document.getElementById('p_item').value;
-        // Force lowercase to match DB check constraint
         const category = document.getElementById('p_category').value.toLowerCase(); 
         const qty = parseInt(document.getElementById('p_qty').value);
         const price = parseInt(document.getElementById('p_price').value);
@@ -102,8 +123,9 @@ class PembelianManager {
             alert('Gagal menyimpan: ' + error.message);
         } else {
             this.renderTable();
-            if(window.DashboardManager && typeof DashboardManager.renderStats === 'function') {
-                DashboardManager.renderStats();
+            // COMPATIBILITY FIX: Use applyGlobalFilter instead of renderStats
+            if(window.DashboardManager && typeof DashboardManager.applyGlobalFilter === 'function') {
+                DashboardManager.applyGlobalFilter();
             }
             this.closeModal(); // Close modal on success
             alert('Transaksi berhasil disimpan!');
@@ -118,8 +140,9 @@ class PembelianManager {
                 alert('Gagal menghapus: ' + error.message);
             } else {
                 this.renderTable();
-                if(window.DashboardManager && typeof DashboardManager.renderStats === 'function') {
-                    DashboardManager.renderStats();
+                // COMPATIBILITY FIX: Use applyGlobalFilter instead of renderStats
+                if(window.DashboardManager && typeof DashboardManager.applyGlobalFilter === 'function') {
+                    DashboardManager.applyGlobalFilter();
                 }
             }
         }
@@ -127,7 +150,7 @@ class PembelianManager {
 
     static openModal() {
         document.getElementById('purchaseForm').reset();
-        document.getElementById('p_date').valueAsDate = new Date(); // Reset date to today
+        setDateToToday('p_date'); // Flatpickr compatible
         document.getElementById('pembelianModal').classList.add('open');
     }
 

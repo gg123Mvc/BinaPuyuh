@@ -53,6 +53,7 @@ const SidebarManager = {
                 else if (targetId === 'admin' && window.AdminManager) AdminManager.renderTable();
                 else if (targetId === 'pembelian' && window.PembelianManager) PembelianManager.renderTable();
                 else if (targetId === 'inkubator' && window.InkubatorManager) InkubatorManager.renderTable();
+                else if (targetId === 'estimasi-produksi' && window.EstimasiProduksiManager) EstimasiProduksiManager.renderTable();
                 else if (targetId === 'settings' && window.SettingsManager) SettingsManager.init();
                 else if (targetId === 'logs' && window.LogManager) LogManager.renderTable();
             } catch (err) {
@@ -76,8 +77,6 @@ const SidebarManager = {
             toggleBtn.addEventListener('click', () => sidebar.classList.add('open'));
         }
         if (closeBtn) closeBtn.addEventListener('click', () => sidebar.classList.remove('open'));
-
-        // Resize listener removed as CSS handles it
     }
 };
 
@@ -155,13 +154,22 @@ const DashboardManager = {
             .gte('tanggal', startDate)
             .lte('tanggal', endDate);
 
-        // B. Production (Telur)
-        // Check table name: usually 'produksi_telur' or similar. 
-        // Based on app.js: 'produksi_telur'
-        const { data: production } = await sb.from('produksi_telur')
-            .select('jumlah, tanggal')
-            .gte('tanggal', startDate)
-            .lte('tanggal', endDate);
+        // B. Production (Telur) - Handle if table doesn't exist yet
+        let production = null;
+        try {
+            const result = await sb.from('produksi_telur')
+                .select('jumlah, tanggal')
+                .gte('tanggal', startDate)
+                .lte('tanggal', endDate);
+            
+            if (!result.error) {
+                production = result.data;
+            } else {
+                console.warn('produksi_telur query error (table may not exist):', result.error);
+            }
+        } catch (err) {
+            console.warn('produksi_telur table not available:', err);
+        }
 
         // C. Population (Snapshot at end of month)
         // Logic: Get Current - (Changes > EndDate)
@@ -243,12 +251,6 @@ const DashboardManager = {
             '#2E7D32',
             'productionEmpty'
         );
-        
-        // Hide Expense Daily Chart if not used anymore or keep it?
-        // User didn't ask for it in point 2.A explicitly (only Bar), but keeping it doesn't hurt.
-        // However, to be clean, let's hide it if not populated, or populate it if we want.
-        // Let's populate it with Expense Daily Trend for "completeness" 
-        // ... (Skipping to save code complexity unless requested)
     },
 
     async calculatePopulationSnapshot(sb, endDateStr) {
@@ -260,13 +262,21 @@ const DashboardManager = {
         const todayStr = new Date().toISOString().split('T')[0];
         if (endDateStr >= todayStr) return currentTotal;
 
-        // 2. Fetch Logs AFTER EndDate
-        // We need to reverse effects.
-        // If event was 'Masuk' (Added), we SUBTRACT.
-        // If event was 'Mati'/'Jual'/'Afkir' (Removed), we ADD.
-        const { data: logs } = await sb.from('riwayat_populasi')
-            .select('jenis_perubahan, jumlah')
-            .gt('created_at', endDateStr);
+        // 2. Fetch Logs AFTER EndDate - Handle if table doesn't exist
+        let logs = null;
+        try {
+            const result = await sb.from('riwayat_populasi')
+                .select('jenis_perubahan, jumlah')
+                .gt('created_at', endDateStr);
+            
+            if (!result.error) {
+                logs = result.data;
+            } else {
+                console.warn('riwayat_populasi query error:', result.error);
+            }
+        } catch (err) {
+            console.warn('riwayat_populasi table not available:', err);
+        }
         
         if (!logs) return currentTotal;
 
@@ -283,25 +293,42 @@ const DashboardManager = {
         return adjustedTotal < 0 ? 0 : adjustedTotal; 
     },
 
-    // Chart Helpers
+    // --- STRICT CHART RENDERING METHODS ---
+    
+    toggleEmptyState(emptyId, show) {
+        const el = document.getElementById(emptyId);
+        if (!el) return;
+        if (show) {
+            el.classList.add('active');
+        } else {
+            el.classList.remove('active');
+        }
+    },
+
     renderBarChart(canvasId, labels, data, label, emptyId) {
         const ctx = document.getElementById(canvasId);
-        const emptyEl = emptyId ? document.getElementById(emptyId) : null;
         if (!ctx) return;
 
-        if (this.charts[canvasId]) this.charts[canvasId].destroy();
+        // 1. Destroy existing chart
+        if (this.charts[canvasId]) {
+            this.charts[canvasId].destroy();
+            delete this.charts[canvasId];
+        }
 
-        if (data.length === 0 || data.every(v => v === 0)) {
-            console.log(`[BarChart] Empty data for ${canvasId}. Showing empty state.`);
-            ctx.style.display = 'none';
-            if (emptyEl) emptyEl.classList.add('active');
+        // 2. Check if data is valid
+        const hasData = data && data.length > 0 && data.some(v => v > 0);
+
+        if (!hasData) {
+            // Show empty state, don't create chart
+            this.toggleEmptyState(emptyId, true);
             return;
         }
 
-        ctx.style.display = 'block';
-        if (emptyEl) emptyEl.classList.remove('active');
+        // 3. Hide empty state
+        this.toggleEmptyState(emptyId, false);
 
-        const bgColors = labels.map((_, i) => `hsl(${i * 60}, 70%, 60%)`);
+        // 4. Create new chart - Single consistent green color
+        const bgColors = labels.map(() => '#4CAF50');
 
         this.charts[canvasId] = new Chart(ctx, {
             type: 'bar',
@@ -311,17 +338,35 @@ const DashboardManager = {
                     label: label,
                     data: data,
                     backgroundColor: bgColors,
-                    borderWidth: 1
+                    borderWidth: 0,
+                    borderRadius: 6
                 }]
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: false,
                 plugins: {
                     legend: { display: false },
                     tooltip: {
                         callbacks: {
                             label: (c) => formatCurrency(c.raw)
-                        }
+                        },
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: '#FFFFFF',
+                        bodyColor: '#C7C7C7',
+                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                        borderWidth: 1
+                    }
+                },
+                scales: {
+                    y: { 
+                        beginAtZero: true,
+                        ticks: { color: '#9CA3AF' },
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                    },
+                    x: {
+                        ticks: { color: '#9CA3AF' },
+                        grid: { display: false }
                     }
                 }
             }
@@ -330,22 +375,27 @@ const DashboardManager = {
 
     renderLineChart(canvasId, labels, data, label, color, emptyId) {
         const ctx = document.getElementById(canvasId);
-        const emptyEl = emptyId ? document.getElementById(emptyId) : null;
         if (!ctx) return;
         
-        if (this.charts[canvasId]) this.charts[canvasId].destroy();
+        // 1. Destroy existing chart
+        if (this.charts[canvasId]) {
+            this.charts[canvasId].destroy();
+            delete this.charts[canvasId];
+        }
         
-        // Strict empty check: Is array empty or all 0?
-        if (data.length === 0 || data.every(v => v === 0)) {
-             ctx.style.display = 'none';
-             if (emptyEl) emptyEl.classList.add('active');
-             return;
+        // 2. Check if data is valid
+        const hasData = data && data.length > 0 && data.some(v => v > 0);
+
+        if (!hasData) {
+            // Show empty state, don't create chart
+            this.toggleEmptyState(emptyId, true);
+            return;
         }
 
-        // Reset visibility
-        ctx.style.display = 'block';
-        if (emptyEl) emptyEl.classList.remove('active');
+        // 3. Hide empty state
+        this.toggleEmptyState(emptyId, false);
         
+        // 4. Create new chart - Professional green theme
         this.charts[canvasId] = new Chart(ctx, {
             type: 'line',
             data: {
@@ -353,17 +403,42 @@ const DashboardManager = {
                 datasets: [{
                     label: label,
                     data: data,
-                    borderColor: color,
-                    backgroundColor: color + '20', // transparent hex
+                    borderColor: '#66BB6A',
+                    backgroundColor: 'rgba(102, 187, 106, 0.1)',
                     fill: true,
-                    tension: 0.3
+                    tension: 0.4,
+                    pointRadius: 3,
+                    pointBackgroundColor: '#66BB6A',
+                    pointHoverRadius: 6,
+                    pointHoverBackgroundColor: '#4CAF50'
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: '#FFFFFF',
+                        bodyColor: '#C7C7C7',
+                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                        borderWidth: 1
+                    }
+                },
                 scales: {
-                    y: { beginAtZero: true }
+                    y: { 
+                        beginAtZero: true,
+                        ticks: { 
+                            stepSize: 1,
+                            color: '#9CA3AF'
+                        },
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                    },
+                    x: {
+                        ticks: { color: '#9CA3AF' },
+                        grid: { display: false }
+                    }
                 }
             }
         });

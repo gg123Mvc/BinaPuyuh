@@ -173,10 +173,22 @@ class PopulasiManager {
         }
     }
 
-    static openModal() {
+    static async openModal() {
         this.loadKandangOptions();
         document.getElementById('populasiForm').reset();
-        document.getElementById('pop_date').valueAsDate = new Date();
+        setDateToToday('pop_date'); // Flatpickr compatible
+        
+        // Fetch and display total population count
+        const sb = window.supabaseClient;
+        if (sb) {
+            const { data: kandangs } = await sb.from('kandang').select('jumlah_puyuh');
+            const total = kandangs ? kandangs.reduce((sum, k) => sum + (k.jumlah_puyuh || 0), 0) : 0;
+            const countEl = document.getElementById('totalPopulationCount');
+            if (countEl) {
+                countEl.textContent = total.toLocaleString('id-ID');
+            }
+        }
+        
         document.getElementById('populasiModal').classList.add('open');
     }
 

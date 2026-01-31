@@ -11,7 +11,7 @@ class KandangDetailManager {
         }
 
         // 2. Set Modal Title
-        document.getElementById('kandangDetailTitle').innerText = `Detail: ${kandang.name}`;
+        document.getElementById('kandangDetailTitle').innerText = `Detail: ${kandang.nama_kandang}`;
         document.getElementById('detail_kandang_id').value = kandang.id;
 
         // 3. Render Timeline
@@ -25,6 +25,10 @@ class KandangDetailManager {
         const sb = window.supabaseClient;
         const container = document.getElementById('activityTimeline');
         container.innerHTML = '<p class="text-center">Memuat data...</p>';
+
+        // Fetch kandang info for feed calculation
+        const { data: kandang } = await sb.from('kandang').select('jumlah_puyuh').eq('id', kandangId).single();
+        const jumlahPuyuh = kandang?.jumlah_puyuh || 0;
 
         const { data: logs, error } = await sb
             .from('kandang_logs')
@@ -67,6 +71,23 @@ class KandangDetailManager {
                     icon = 'fa-info-circle'; color = '#6B7280';
             }
 
+            // Calculate feed duration if PAKAN activity
+            let feedDuration = '';
+            if (log.activity_type === 'PAKAN' && log.quantity && jumlahPuyuh > 0) {
+                // Average consumption: 25g per quail per day
+                const dailyConsumption = (jumlahPuyuh * 25) / 1000; // in kg
+                const daysRemaining = Math.floor(log.quantity / dailyConsumption);
+                const estimatedDate = new Date(log.created_at);
+                estimatedDate.setDate(estimatedDate.getDate() + daysRemaining);
+                
+                feedDuration = `<div style="margin-top: 0.5rem; padding: 0.5rem; background: rgba(251, 191, 36, 0.1); border-left: 3px solid #FBBF24; border-radius: 4px;">
+                    <small style="color: #FBBF24;">
+                        <i class="fas fa-clock"></i> Estimasi habis: ${daysRemaining} hari (${estimatedDate.toLocaleDateString('id-ID')})
+                        <br><i class="fas fa-info-circle"></i> Konsumsi: ~${dailyConsumption.toFixed(2)} kg/hari (${jumlahPuyuh} ekor × 25g)
+                    </small>
+                </div>`;
+            }
+
             html += `
             <div class="timeline-item" style="border-left: 2px solid ${color}; padding-left: 1rem; margin-bottom: 1rem; position: relative;">
                 <div style="position: absolute; left: -9px; top: 0; background: #1a1a1a; color: ${color};">
@@ -76,6 +97,7 @@ class KandangDetailManager {
                 <div style="font-weight: bold; margin-top: 4px;">${log.activity_type}</div>
                 <div>${log.quantity > 0 ? log.quantity + ' ' + (log.unit || '') : ''}</div>
                 ${log.notes ? `<div style="font-style: italic; color: #888; font-size: 0.9rem;">"${log.notes}"</div>` : ''}
+                ${feedDuration}
             </div>
             `;
         });

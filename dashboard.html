@@ -8,25 +8,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Chart.js for beautiful charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        .section-content { display: none; opacity: 0; transition: opacity 0.3s; }
-        .section-content.active { display: block; opacity: 1; }
-        
-        .action-btn-group { display: flex; gap: 0.5rem; }
-    </style>
-    <style>
-        .search-container {
-            margin-bottom: 1rem;
-            display: flex;
-            gap: 10px;
-        }
-        .search-input {
-            flex: 1;
-            padding: 0.5rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-    </style>
+    
+    <!-- Flatpickr Date Picker -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+
 </head>
 <body>
 
@@ -45,6 +31,9 @@
                 </div>
                 <div class="nav-item" data-target="inkubator">
                     <i class="fas fa-temperature-high"></i> Inkubator
+                </div>
+                <div class="nav-item" data-target="estimasi-produksi">
+                    <i class="fas fa-chart-pie"></i> Estimasi Produksi
                 </div>
                 <div class="nav-item" data-target="kandang">
                     <i class="fas fa-warehouse"></i> Manajemen Kandang
@@ -133,24 +122,29 @@
                     </div>
                 </div>
 
+
                 <div class="card">
                     <h3 class="mb-3">Tren Produksi Telur (Harian)</h3>
-                    <div id="productionEmpty" class="chart-message">
-                        <i class="fas fa-chart-line"></i> 
-                        <span>Belum ada data produksi untuk periode ini.</span>
+                    <div class="chart-wrapper">
+                        <div id="productionEmpty" class="chart-message">
+                            <i class="fas fa-chart-line"></i> 
+                            <span>Belum ada data produksi untuk periode ini.</span>
+                        </div>
+                        <canvas id="productionChart"></canvas>
                     </div>
-                    <canvas id="productionChart" style="max-height: 300px;"></canvas>
                 </div>
 
                 <!-- Expense Analysis -->
                 <div style="margin-top: 1.5rem;">
                     <div class="card">
                         <h3 class="mb-3">Pengeluaran per Kategori</h3>
-                        <div id="expenseCategoryEmpty" class="chart-message">
-                            <i class="fas fa-wallet"></i>
-                            <span>Belum ada pengeluaran tercatat untuk periode ini.</span>
+                        <div class="chart-wrapper">
+                            <div id="expenseCategoryEmpty" class="chart-message">
+                                <i class="fas fa-wallet"></i>
+                                <span>Belum ada pengeluaran tercatat untuk periode ini.</span>
+                            </div>
+                            <canvas id="expenseCategoryChart"></canvas>
                         </div>
-                        <canvas id="expenseCategoryChart" style="max-height: 300px;"></canvas>
                     </div>
                 </div>
             </div>
@@ -164,7 +158,7 @@
                              <button class="btn btn-primary" onclick="KandangManager.openModal()"><i class="fas fa-plus"></i> Tambah Kandang</button>
                         </div>
                     </div>
-                    <div style="overflow-x: auto;">
+                    <div class="table-responsive">
                         <table>
                             <thead>
                                 <tr>
@@ -204,7 +198,7 @@
                         <button class="btn btn-secondary" onclick="PembelianManager.search()">Cari</button>
                     </div>
 
-                    <div style="overflow-x: auto;">
+                    <div class="table-responsive">
                         <table>
                             <thead>
                                 <tr>
@@ -236,7 +230,7 @@
                             <button class="btn btn-primary" onclick="PakanManager.openModal()"><i class="fas fa-plus"></i> Catat Pakan</button>
                         </div>
                     </div>
-                    <div style="overflow-x: auto;">
+                    <div class="table-responsive">
                         <table>
                             <thead>
                                 <tr>
@@ -284,6 +278,68 @@
                                 </tr>
                             </thead>
                             <tbody id="inkubatorTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION: ESTIMASI PRODUKSI -->
+            <div id="estimasi-produksi" class="section-content">
+                <div class="card">
+                    <div class="section-header">
+                        <h3><i class="fas fa-chart-pie"></i> Estimasi Produksi Telur</h3>
+                    </div>
+
+                    <!-- Educational Info -->
+                    <div class="info-box" style="margin-bottom: 1.5rem;">
+                        <div class="info-box-header">
+                            <i class="fas fa-calendar-check info-box-icon"></i>
+                            <h4 class="info-box-title">📅 Timeline Produksi Puyuh</h4>
+                        </div>
+                        <div class="info-box-content">
+                            <div class="info-box-highlight">
+                                <strong><i class="fas fa-egg"></i> Puyuh mulai bertelur pada hari ke-40 sampai 45 setelah menetas</strong>
+                                <br>Produksi optimal dimulai pada hari ke-50 dengan tingkat 70-80% per hari
+                            </div>
+                            
+                            <p style="margin: 1rem 0 0.5rem; font-weight: 500; color: var(--text-primary);">
+                                <i class="fas fa-clock"></i> Status Produksi:
+                            </p>
+                            <div class="info-factors">
+                                <span class="info-factor" style="background: rgba(251, 191, 36, 0.15); color: #FFA726;">
+                                    <i class="fas fa-hourglass-start"></i> 0-39 hari: Belum Siap
+                                </span>
+                                <span class="info-factor" style="background: rgba(255, 152, 0, 0.15); color: #FF9800;">
+                                    <i class="fas fa-hourglass-half"></i> 40-44 hari: Mulai Bertelur
+                                </span>
+                                <span class="info-factor" style="background: rgba(102, 187, 106, 0.15); color: #66BB6A;">
+                                    <i class="fas fa-check-circle"></i> 45+ hari: Produksi Optimal
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Production Timeline Table -->
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Nama Kandang</th>
+                                    <th>Jumlah Puyuh</th>
+                                    <th>Tanggal Masuk</th>
+                                    <th>Umur (Hari)</th>
+                                    <th>Estimasi Mulai Bertelur</th>
+                                    <th>Status Produksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="estimasiProduksiTableBody">
+                                <tr>
+                                    <td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-dim);">
+                                        <i class="fas fa-spinner fa-spin"></i> Memuat data...
+                                    </td>
+                                </tr>
+                            </tbody>
                         </table>
                     </div>
                 </div>
@@ -407,6 +463,15 @@
                     <label class="form-label">Jumlah Puyuh Saat Ini</label>
                     <input type="number" id="k_count" class="form-input" required min="0">
                 </div>
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-calendar-alt"></i> Tanggal Masuk Puyuh (Opsional)
+                    </label>
+                    <input type="date" id="k_tanggal_masuk" class="form-input" placeholder="Kapan puyuh masuk kandang?">
+                    <small style="display: block; margin-top: 0.5rem; color: var(--text-dim); font-size: 0.85rem;">
+                        <i class="fas fa-info-circle"></i> Untuk estimasi produksi telur otomatis
+                    </small>
+                </div>
                 <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1rem;">
                     <button type="button" class="btn btn-outline" onclick="KandangManager.closeModal()">Batal</button>
                     <button type="submit" class="btn btn-primary">Simpan Data</button>
@@ -417,7 +482,7 @@
 
     <!-- MODAL INKUBATOR -->
     <div id="inkubatorModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" style="max-height: 85vh; overflow-y: auto;">
             <h3 class="mb-3">Data Inkubasi</h3>
             <form id="inkubatorForm" onsubmit="event.preventDefault(); InkubatorManager.save();">
                 <input type="hidden" id="ink_id">
@@ -442,11 +507,49 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="ink_status">Status</label>
-                    <select id="ink_status" class="form-select">
+                    <select id="ink_status" class="form-select" onchange="InkubatorManager.toggleKandangSelector()">
                         <option value="inkubasi">Proses Inkubasi</option>
                         <option value="menetas">Sudah Menetas</option>
                         <option value="gagal">Gagal / Busuk</option>
                     </select>
+                </div>
+                
+                <!-- Failed Eggs Input (shown when status is gagal) -->
+                <div class="form-group" id="ink_gagal_group" style="display: none;">
+                    <label class="form-label" for="ink_jumlah_gagal">
+                        <i class="fas fa-times-circle"></i> Jumlah Telur Gagal/Busuk
+                    </label>
+                    <input type="number" id="ink_jumlah_gagal" class="form-input" min="0" placeholder="Berapa telur yang gagal?">
+                    <small style="display: block; margin-top: 0.5rem; color: var(--text-dim); font-size: 0.85rem;">
+                        <i class="fas fa-info-circle"></i> Kosongkan jika semua telur gagal
+                    </small>
+                </div>
+
+                <div class="form-group" id="ink_kandang_group" style="display: none;">
+                    <label class="form-label">
+                        <i class="fas fa-warehouse"></i> Masukkan ke Kandang <span style="color: var(--danger);">*</span>
+                    </label>
+                    
+                    <!-- Distribution Mode Selector -->
+                    <div style="margin-bottom: 1rem;">
+                        <label style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.5rem;">
+                            <input type="radio" name="ink_dist_mode" value="auto" checked onchange="InkubatorManager.toggleDistributionMode()">
+                            <span><i class="fas fa-random"></i> Bagi Rata Otomatis</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">
+                            <input type="radio" name="ink_dist_mode" value="manual" onchange="InkubatorManager.toggleDistributionMode()">
+                            <span><i class="fas fa-pen"></i> Input Manual per Kandang</span>
+                        </label>
+                    </div>
+
+                    <!-- Kandang List -->
+                    <div id="ink_kandang_list" style="max-height: 250px; overflow-y: auto; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 0.75rem; background: rgba(0,0,0,0.2);">
+                        <p style="text-align: center; color: var(--text-dim); margin: 1rem;">Loading kandang...</p>
+                    </div>
+
+                    <small style="display: block; margin-top: 0.5rem; color: var(--text-dim); font-size: 0.85rem;">
+                        <i class="fas fa-info-circle"></i> <span id="ink_kandang_helper">Pilih satu atau lebih kandang. Puyuh akan dibagi rata.</span>
+                    </small>
                 </div>
                 <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1rem;">
                     <button type="button" class="btn btn-secondary" onclick="InkubatorManager.closeModal()">Batal</button>
@@ -515,6 +618,9 @@
                 <div class="form-group">
                     <label class="form-label">Jumlah (Ekor)</label>
                     <input type="number" id="pop_count" class="form-input" required min="1">
+                    <small id="totalPopulationHelper" style="display: block; margin-top: 0.5rem; color: var(--text-dim); font-size: 0.85rem;">
+                        <i class="fas fa-info-circle"></i> Total puyuh saat ini: <span id="totalPopulationCount" style="color: var(--primary-light); font-weight: 600;">-</span> ekor
+                    </small>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Keterangan</label>
@@ -543,15 +649,56 @@
         </div>
     </div>
 
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script type="module" src="./js/config.js"></script>
     <script type="module" src="./js/app.js"></script>
     <script type="module" src="./js/modal.js"></script>
     <script type="module" src="./js/export.js"></script>
 
+    <!-- Global Utility Functions -->
+    <script>
+        // Format currency to Indonesian Rupiah
+        window.formatCurrency = function(amount) {
+            if (!amount && amount !== 0) return 'Rp 0';
+            return 'Rp ' + amount.toLocaleString('id-ID');
+        };
+
+        // Set date to today (compatible with Flatpickr)
+        window.setDateToToday = function(inputId) {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+            input.value = today;
+            // If Flatpickr is initialized, update it
+            if (input._flatpickr) {
+                input._flatpickr.setDate(today);
+            }
+        };
+    </script>
+
+    <!-- Flatpickr Initialization -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/id.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize all date inputs with Flatpickr
+            const dateInputs = document.querySelectorAll('input[type="date"]');
+            dateInputs.forEach(input => {
+                flatpickr(input, {
+                    dateFormat: "Y-m-d",
+                    defaultDate: "today",
+                    locale: "id",
+                    theme: "dark"
+                });
+            });
+        });
+    </script>
+
     <script type="module" src="./src/CmsManager.js"></script>
     <script type="module" src="./src/SettingsManager.js"></script>
     <script type="module" src="./src/InkubatorManager.js"></script>
+    <script type="module" src="./src/EstimasiProduksiManager.js"></script>
     <script type="module" src="./src/KandangManager.js"></script>
     <script type="module" src="./src/PembelianManager.js"></script>
     <script type="module" src="./src/PakanManager.js"></script>
@@ -621,7 +768,6 @@
                         <option value="Pakan">Pakan</option>
                         <option value="Obat">Obat / Vitamin</option>
                         <option value="Perlengkapan">Perlengkapan</option>
-                        <option value="Lainnya">Lainnya</option>
                     </select>
                 </div>
                 <div class="form-group">
