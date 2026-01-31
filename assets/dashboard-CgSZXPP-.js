@@ -1,4 +1,4 @@
-import"./config-B2rk4czd.js";/* empty css              */import"./app-DcSmm_kz.js";class v{constructor(){this.overlay=null,this.resolvePromise=null,this._init()}_init(){if(document.getElementById("custom-modal-system"))return;const e=document.createElement("div");e.id="custom-modal-system",e.className="modal custom-modal-overlay",e.innerHTML=`
+import"./config-Dinvi52x.js";/* empty css              */import"./app-DcSmm_kz.js";class v{constructor(){this.overlay=null,this.resolvePromise=null,this._init()}_init(){if(document.getElementById("custom-modal-system"))return;const e=document.createElement("div");e.id="custom-modal-system",e.className="modal custom-modal-overlay",e.innerHTML=`
             <div class="modal-content glass-panel animate-pop">
                 <div class="modal-icon-wrapper" id="modal-icon">
                     <i class="fas fa-info-circle"></i>

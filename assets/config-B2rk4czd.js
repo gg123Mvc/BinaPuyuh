@@ -1,8 +1,0 @@
-(function(){const r=document.createElement("link").relList;if(r&&r.supports&&r.supports("modulepreload"))return;for(const e of document.querySelectorAll('link[rel="modulepreload"]'))s(e);new MutationObserver(e=>{for(const t of e)if(t.type==="childList")for(const n of t.addedNodes)n.tagName==="LINK"&&n.rel==="modulepreload"&&s(n)}).observe(document,{childList:!0,subtree:!0});function l(e){const t={};return e.integrity&&(t.integrity=e.integrity),e.referrerPolicy&&(t.referrerPolicy=e.referrerPolicy),e.crossOrigin==="use-credentials"?t.credentials="include":e.crossOrigin==="anonymous"?t.credentials="omit":t.credentials="same-origin",t}function s(e){if(e.ep)return;e.ep=!0;const t=l(e);fetch(e.href,t)}})();const c={BASE_URL:"./",DEV:!1,MODE:"production",PROD:!0,SSR:!1,VITE_SUPABASE_ANON_KEY:"",VITE_SUPABASE_URL:""};let i,a;try{typeof import.meta<"u"&&c&&(i="",a="")}catch(o){console.warn("Vite Env not detected:",o)}if(!i||!a){const o=window.location.hostname,r=o==="localhost"||o==="127.0.0.1"||o.startsWith("192.168.")||o.startsWith("10.")||window.location.protocol==="file:";console.error("CRITICAL: Supabase Configuration Missing."),alert(r?`ERROR: Konfigurasi Database tidak ditemukan!
-
-Penyebab: Browser tidak membaca file .env secara langsung (mode Static/XAMPP/File).
-
-SOLUSI:
-1. Buka Terminal
-2. Ketik "npm run dev"
-3. Buka link localhost yang muncul.`:"ERROR: Konfigurasi Supabase belum diatur di server hosting (Environment Variables).")}else window.supabase?(window.supabaseClient=window.supabase.createClient(i,a),console.log("✅ Supabase Client Connected via Vite")):(console.error("❌ Supabase JS Library not loaded (CDN Issue)"),alert("Gagal memuat library Supabase. Periksa koneksi internet Anda."));
