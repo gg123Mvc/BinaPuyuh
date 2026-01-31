@@ -113,7 +113,7 @@
                     <div class="stat-card">
                         <div class="stat-icon"><i class="fas fa-egg"></i></div>
                         <div class="stat-value" id="dash-total-telur">0</div>
-                        <div class="stat-label">Produksi Telur (Hari Ini)</div>
+                        <div class="stat-label">Total Telur di Inkubator</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon"><i class="fas fa-wallet"></i></div>
@@ -331,15 +331,50 @@
                                     <th>Umur (Hari)</th>
                                     <th>Estimasi Mulai Bertelur</th>
                                     <th>Status Produksi</th>
+                                    <th style="min-width: 140px;">Total Produksi (All Time)</th>
+                                    <th style="min-width: 180px;">Jumlah Telur Hari Ini</th>
                                 </tr>
                             </thead>
                             <tbody id="estimasiProduksiTableBody">
                                 <tr>
-                                    <td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-dim);">
+                                    <td colspan="9" style="text-align: center; padding: 2rem; color: var(--text-dim);">
                                         <i class="fas fa-spinner fa-spin"></i> Memuat data...
                                     </td>
                                 </tr>
                             </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION: CATATAN TELUR -->
+            <div id="catatantelur" class="section-content">
+                <div class="card">
+                    <div class="section-header">
+                        <h3><i class="fas fa-clipboard-list"></i> Catatan Produksi Telur</h3>
+                        <div class="action-btn-group">
+                            <button class="btn btn-outline btn-sm" onclick="CatatanTelurManager.exportData()">
+                                <i class="fas fa-file-csv"></i> Export CSV
+                            </button>
+                            <button class="btn btn-primary" onclick="CatatanTelurManager.openModal()">
+                                <i class="fas fa-plus"></i> Catat Produksi
+                            </button>
+                        </div>
+                    </div>
+
+                    <div style="overflow-x:auto">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Tanggal</th>
+                                    <th>Kandang</th>
+                                    <th>Jumlah</th>
+                                    <th>Kualitas</th>
+                                    <th>Catatan</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="catatanTelurTableBody"></tbody>
                         </table>
                     </div>
                 </div>
@@ -634,6 +669,46 @@
         </div>
     </div>
 
+    <!-- MODAL CATATAN TELUR -->
+    <div id="catatanTelurModal" class="modal">
+        <div class="modal-content">
+            <h3 class="mb-3" id="catatanTelurModalTitle">Catat Produksi Telur</h3>
+            <form id="catatanTelurForm" onsubmit="event.preventDefault(); CatatanTelurManager.save();">
+                <input type="hidden" id="ct_id">
+                <div class="form-group">
+                    <label class="form-label">Tanggal</label>
+                    <input type="date" id="ct_tanggal" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Kandang</label>
+                    <select id="ct_kandang" class="form-input" required>
+                        <option value="">-- Pilih Kandang --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Jumlah Telur (butir)</label>
+                    <input type="number" id="ct_jumlah" class="form-input" required min="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Kualitas</label>
+                    <select id="ct_kualitas" class="form-input">
+                        <option value="Baik">Baik</option>
+                        <option value="Retak">Retak</option>
+                        <option value="Pecah">Pecah</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Catatan (Opsional)</label>
+                    <textarea id="ct_catatan" class="form-input" rows="2" placeholder="Catatan tambahan..."></textarea>
+                </div>
+                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1rem;">
+                    <button type="button" class="btn btn-secondary" onclick="CatatanTelurManager.closeModal()">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan Data</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- MODAL DETAIL KANDANG (Timeline) -->
     <div id="kandangDetailModal" class="modal">
         <div class="modal-content" style="max-height: 80vh; overflow-y: auto;">
@@ -703,6 +778,8 @@
     <script type="module" src="./src/PembelianManager.js"></script>
     <script type="module" src="./src/PakanManager.js"></script>
     <script type="module" src="./src/PopulasiManager.js"></script>
+    <script type="module" src="./src/CatatanTelurManager.js"></script>
+    <script type="module" src="./src/TelurManager.js"></script>
     <script type="module" src="./src/AdminManager.js"></script>
     <script type="module" src="./src/DebugManager.js"></script>
     <script type="module" src="./src/KandangDetailManager.js"></script> <!-- New Manager -->

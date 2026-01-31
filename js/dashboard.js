@@ -48,12 +48,13 @@ const SidebarManager = {
             
             // Safely Refresh data - Wrapped in try-catch
             try {
-                if (targetId === 'pakan' && window.PakanManager) PakanManager.renderTable();
+                if (targetId === ' pakan' && window.PakanManager) PakanManager.renderTable();
                 else if (targetId === 'populasi' && window.PopulasiManager) PopulasiManager.renderTable();
                 else if (targetId === 'admin' && window.AdminManager) AdminManager.renderTable();
                 else if (targetId === 'pembelian' && window.PembelianManager) PembelianManager.renderTable();
                 else if (targetId === 'inkubator' && window.InkubatorManager) InkubatorManager.renderTable();
                 else if (targetId === 'estimasi-produksi' && window.EstimasiProduksiManager) EstimasiProduksiManager.renderTable();
+                else if (targetId === 'catatantelur' && window.CatatanTelurManager) CatatanTelurManager.renderTable();
                 else if (targetId === 'settings' && window.SettingsManager) SettingsManager.init();
                 else if (targetId === 'logs' && window.LogManager) LogManager.renderTable();
             } catch (err) {
@@ -215,13 +216,18 @@ const DashboardManager = {
         // Actually, let's just update values.
         if (elPuyuh) elPuyuh.innerText = popSnapshot.toLocaleString();
         
-        // Label for Egg might say "Hari Ini" in HTML, should we change it?
-        // Let's find the label sibling and change text if possible or just update value.
-        // User asked: "Total telur per bulan". 
+        // Show total eggs in incubators
         if (elTelur) {
+            // Get all eggs currently in incubators
+            const { data: inkubatorData } = await sb
+                .from('inkubator')
+                .select('jumlah_telur');
+            
+            const totalEggs = inkubatorData ? inkubatorData.reduce((sum, item) => sum + (item.jumlah_telur || 0), 0) : 0;
+            
             elTelur.innerText = totalEggs.toLocaleString();
-            // Optional: Change label text using DOM traversal if rigorous
-            if(elTelur.nextElementSibling) elTelur.nextElementSibling.innerText = "Total Telur (Periode Ini)";
+            // Update label to reflect what we're showing
+            if(elTelur.nextElementSibling) elTelur.nextElementSibling.innerText = "Total Telur di Inkubator";
         }
         
         if (elExp) {

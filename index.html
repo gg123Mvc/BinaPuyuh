@@ -50,7 +50,7 @@
           <div class="stat-card">
             <div class="stat-icon"><i class="fas fa-egg"></i></div>
             <div class="stat-value" id="total-telur">854</div>
-            <div class="stat-label">Produksi Telur Hari Ini</div>
+            <div class="stat-label">Total Telur di Inkubator</div>
           </div>
           <div class="stat-card">
             <div class="stat-icon"><i class="fas fa-warehouse"></i></div>
@@ -162,15 +162,13 @@
              els.kandang.innerText = totalKandang;
           }
 
-          // 2. Fetch Todays Egg Production
-          const today = new Date().toISOString().split('T')[0];
+          // 2. Fetch Total Eggs in Incubators
           const { data: eggs, error: eError } = await sb
-            .from('produksi_telur')
-            .select('jumlah')
-            .eq('tanggal', today);
+            .from('inkubator')
+            .select('jumlah_telur');
 
           if (!eError && eggs) {
-             const totalTelur = eggs.reduce((sum, e) => sum + (e.jumlah || 0), 0);
+             const totalTelur = eggs.reduce((sum, e) => sum + (e.jumlah_telur || 0), 0);
              els.telur.innerText = totalTelur;
           }
 
