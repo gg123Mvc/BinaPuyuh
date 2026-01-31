@@ -1,4 +1,4 @@
-import"./config-Dinvi52x.js";/* empty css              */import"./app-BgDMR-5F.js";window.onload=function(){if(typeof Auth>"u"){const e=`CRITICAL: "Auth" class is not defined. 
+import"./config-_HLYuJBG.js";/* empty css              */import"./app-BgDMR-5F.js";window.onload=function(){if(typeof Auth>"u"){const e=`CRITICAL: "Auth" class is not defined. 
 
 Possibilities:
 1. js/app.js failed to load (Check Network Tab)
