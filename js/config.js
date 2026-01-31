@@ -1,45 +1,19 @@
 /**
  * config.js
  * Supabase Configuration
+ * 
+ * NOTE: Credentials are hardcoded for ease of use in XAMPP/Static environments.
+ * Ensure Row Level Security (RLS) is enabled in Supabase to protect data.
  */
 
-let SUPABASE_URL, SUPABASE_KEY;
+const SUPABASE_URL = "https://cusmwcirycfhxhlypbey.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1c213Y2lyeWNmaHhobHlwYmV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc1ODk2MDQsImV4cCI6MjA4MzE2NTYwNH0.td_j7IiHjUsn9eTti34g-iQ9PFnE4UhEHR7tMy1TE4s";
 
-// 1. Try to load from Vite Environment Variables
-try {
-    // Check if running in Vite (import.meta.env exists)
-    if (typeof import.meta !== 'undefined' && import.meta.env) {
-        SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-        SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
-    }
-} catch (e) {
-    console.warn('Vite Env not detected:', e);
-}
-
-// 2. Validation
-if (!SUPABASE_URL || !SUPABASE_KEY) {
-    const hostname = window.location.hostname;
-    const isLocal = 
-        hostname === 'localhost' || 
-        hostname === '127.0.0.1' || 
-        hostname.startsWith('192.168.') || 
-        hostname.startsWith('10.') ||
-        window.location.protocol === 'file:';
-    
-    console.error('CRITICAL: Supabase Configuration Missing.');
-    
-    if (isLocal) {
-        alert('ERROR: Konfigurasi Database tidak ditemukan!\n\nPenyebab: Browser tidak membaca file .env secara langsung (mode Static/XAMPP/File).\n\nSOLUSI:\n1. Buka Terminal\n2. Ketik "npm run dev"\n3. Buka link localhost yang muncul.');
-    } else {
-        alert('ERROR: Konfigurasi Supabase KOSONG di Hosting ini.\n\nJIKA DI GITHUB PAGES:\nAnda mungkin melakukan "Push" sebelum memasukkan "Secrets".\n\nSOLUSI:\n1. Pastikan Secrets (VITE_SUPABASE_URL, dll) ada di Settings > Secrets > Actions.\n2. Buka tab "Actions", pilih workflow terakhir.\n3. Klik "Re-run all jobs".');
-    }
+// Create client and attach to WINDOW
+if (window.supabase) {
+    window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    console.log('✅ Supabase Client Initialized (Static Mode)');
 } else {
-    // 3. Initialize Client
-    if (window.supabase) {
-        window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        console.log('✅ Supabase Client Connected via Vite');
-    } else {
-        console.error('❌ Supabase JS Library not loaded (CDN Issue)');
-        alert('Gagal memuat library Supabase. Periksa koneksi internet Anda.');
-    }
+    console.error('❌ Supabase Library not loaded from CDN');
+    alert('Gagal memuat library Supabase. Periksa koneksi internet Anda.');
 }
