@@ -18,12 +18,18 @@ try {
 
 // 2. Validation
 if (!SUPABASE_URL || !SUPABASE_KEY) {
-    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const hostname = window.location.hostname;
+    const isLocal = 
+        hostname === 'localhost' || 
+        hostname === '127.0.0.1' || 
+        hostname.startsWith('192.168.') || 
+        hostname.startsWith('10.') ||
+        window.location.protocol === 'file:';
     
     console.error('CRITICAL: Supabase Configuration Missing.');
     
     if (isLocal) {
-        alert('ERROR: Konfigurasi Database tidak ditemukan!\n\nJika Anda menjalankan di XAMPP: Browser tidak bisa membaca file .env secara langsung.\nSolusi: Gunakan "npm run dev" di terminal.\n\nJika menggunakan Vite: Pastikan file .env ada dan berisi kredensial.');
+        alert('ERROR: Konfigurasi Database tidak ditemukan!\n\nPenyebab: Browser tidak membaca file .env secara langsung (mode Static/XAMPP/File).\n\nSOLUSI:\n1. Buka Terminal\n2. Ketik "npm run dev"\n3. Buka link localhost yang muncul.');
     } else {
         alert('ERROR: Konfigurasi Supabase belum diatur di server hosting (Environment Variables).');
     }
