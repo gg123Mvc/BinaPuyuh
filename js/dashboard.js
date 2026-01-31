@@ -292,9 +292,10 @@ const DashboardManager = {
         if (this.charts[canvasId]) this.charts[canvasId].destroy();
 
         if (data.length === 0 || data.every(v => v === 0)) {
+            console.log(`[BarChart] Empty data for ${canvasId}. Showing empty state.`);
             ctx.style.display = 'none';
             if (emptyEl) emptyEl.style.display = 'block';
-            if (emptyEl) emptyEl.innerText = "Tidak ada data pada periode ini";
+            // Do not overwrite innerText to keep Icon
             return;
         }
 
