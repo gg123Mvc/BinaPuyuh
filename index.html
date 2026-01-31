@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sistem Manajemen Peternakan Puyuh</title>
+    <!-- FontAwesome for Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      /* Optional: simple fallback if internet is slow for fonts */
+      .fa-egg {
+        color: #ffa000;
+      }
+      .fa-dove {
+        color: #795548;
+      }
+      .fa-warehouse {
+        color: #5d4037;
+      }
+    </style>
+    <script type="module" crossorigin src="./assets/main-BzwuI009.js"></script>
+    <link rel="modulepreload" crossorigin href="./assets/config-B2rk4czd.js">
+    <link rel="modulepreload" crossorigin href="./assets/app-DcSmm_kz.js">
+    <link rel="stylesheet" crossorigin href="./assets/style-B1t-BExz.css">
+  </head>
+  <body>
+    <!-- Hero Section -->
+    <section class="hero" style="background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1598460677840-75d19b4c0556?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80'); background-size: cover; background-position: center;">
+      <div class="container">
+        <img src="./assets/logo-BuNsA154.png" alt="Logo" style="width: 100px; margin-bottom: 1rem;">
+        <h1 style="font-weight: 700;">Peternakan Puyuh Modern</h1>
+        <p style="color: rgba(255,255,255,0.9);">
+          Kelola produksi, pakan, dan populasi kandang dengan mudah dan efisien.
+        </p>
+        <a href="login.html" class="btn btn-primary" style="margin-top: 1rem;"
+          ><i class="fas fa-user-shield"></i> Login Admin</a
+        >
+      </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="section">
+      <div class="container">
+        <div class="stats-grid" style="margin-top: -3rem;">
+          <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-dove"></i></div>
+            <div class="stat-value" id="total-puyuh">1250</div>
+            <div class="stat-label">Total Populasi Puyuh</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-egg"></i></div>
+            <div class="stat-value" id="total-telur">854</div>
+            <div class="stat-label">Produksi Telur Hari Ini</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-warehouse"></i></div>
+            <div class="stat-value" id="total-kandang">5</div>
+            <div class="stat-label">Jumlah Kandang Aktif</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- About / Features -->
+    <section class="section">
+      <div class="container">
+        <div class="text-center mb-3">
+          <h2>Fitur Unggulan</h2>
+          <p style="color: var(--dim-text)">
+            Sistem kami membantu peternak memaksimalkan hasil.
+          </p>
+        </div>
+
+        <div
+          style="
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+          "
+        >
+          <div class="card">
+            <h3 class="mb-3">
+              <i class="fas fa-chart-line" style="color: #4CAF50; margin-right: 10px;"></i>
+              Monitoring Real-time
+            </h3>
+            <p style="color: var(--dim-text);">
+              Pantau perkembangan populasi dan produksi telur setiap hari
+              melalui dashboard interaktif.
+            </p>
+          </div>
+          <div class="card">
+            <h3 class="mb-3">
+              <i class="fas fa-calculator" style="color: #4CAF50; margin-right: 10px;"></i>
+              Manajemen Pakan
+            </h3>
+            <p style="color: var(--dim-text);">
+              Hitung kebutuhan pakan dan catat pembelian inventaris agar stok
+              selalu terjaga.
+            </p>
+          </div>
+          <div class="card">
+            <h3 class="mb-3">
+              <i class="fas fa-mobile-alt" style="color: #4CAF50; margin-right: 10px;"></i>
+              Akses Mobile
+            </h3>
+            <p style="color: var(--dim-text);">
+              Desain responsif memungkinkan Anda mengelola peternakan dari
+              smartphone di mana saja.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer
+      style="
+        background: rgba(0,0,0,0.5);
+        border-top: 1px solid rgba(255,255,255,0.1);
+        color: var(--dim-text);
+        padding: 2rem 0;
+        margin-top: auto;
+      "
+    >
+      <div class="container text-center">
+        <p>&copy; 2024 Manajemen Peternakan Puyuh. All rights reserved.</p>
+      </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  </body>
+</html>

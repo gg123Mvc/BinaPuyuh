@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verifikasi Login - Puyuh Farm</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .verify-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-color) 100%);
+            text-align: center;
+        }
+        .verify-card {
+            background: white;
+            padding: 3rem;
+            border-radius: var(--radius-lg);
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        .spinner {
+            font-size: 3rem;
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+    </style>
+  <script type="module" crossorigin src="./assets/verify-DxG_Mb3x.js"></script>
+  <link rel="modulepreload" crossorigin href="./assets/config-B2rk4czd.js">
+  <link rel="modulepreload" crossorigin href="./assets/app-DcSmm_kz.js">
+  <link rel="stylesheet" crossorigin href="./assets/style-B1t-BExz.css">
+</head>
+<body>
+    <div class="verify-container">
+        <div class="verify-card">
+            <div id="loading">
+                <i class="fas fa-circle-notch spinner"></i>
+                <h2 style="color: #333; margin-bottom: 0.5rem;">Memverifikasi...</h2>
+                <p style="color: #666;">Mohon tunggu sebentar, kami sedang mengarahkan Anda.</p>
+            </div>
+            
+            <div id="error" style="display: none;">
+                <i class="fas fa-times-circle" style="font-size: 3rem; color: var(--error-color); margin-bottom: 1rem;"></i>
+                <h2 style="color: #333; margin-bottom: 0.5rem;">Gagal Verifikasi</h2>
+                <p id="error-text" style="color: #666; margin-bottom: 1.5rem;">Link tidak valid atau kadaluarsa.</p>
+                <a href="login.html" class="btn btn-primary">Kembali ke Login</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</body>
+</html>

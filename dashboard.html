@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Puyuh Farm</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js for beautiful charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .section-content { display: none; opacity: 0; transition: opacity 0.3s; }
+        .section-content.active { display: block; opacity: 1; }
+        
+        .action-btn-group { display: flex; gap: 0.5rem; }
+    </style>
+    <style>
+        .search-container {
+            margin-bottom: 1rem;
+            display: flex;
+            gap: 10px;
+        }
+        .search-input {
+            flex: 1;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+  <script type="module" crossorigin src="./assets/dashboard-BBaPeRJz.js"></script>
+  <link rel="modulepreload" crossorigin href="./assets/config-B2rk4czd.js">
+  <link rel="modulepreload" crossorigin href="./assets/app-DcSmm_kz.js">
+  <link rel="stylesheet" crossorigin href="./assets/style-B1t-BExz.css">
+</head>
+<body>
+
+    <div class="dashboard-layout">
+        <!-- SIDEBAR -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <img src="./assets/logo-BuNsA154.png" alt="Logo" class="sidebar-logo-img">
+                <span style="font-weight: 700; font-size: 1.1rem; letter-spacing: 0.5px;">PUYUH FARM</span>
+                <button id="closeSidebar" class="btn-outline mobile-visible" style="margin-left: auto; border:none; color:white;"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <nav class="nav-links">
+                <div class="nav-item active" data-target="overview">
+                    <i class="fas fa-th-large"></i> Ringkasan
+                </div>
+                <div class="nav-item" data-target="inkubator">
+                    <i class="fas fa-temperature-high"></i> Inkubator
+                </div>
+                <div class="nav-item" data-target="kandang">
+                    <i class="fas fa-warehouse"></i> Manajemen Kandang
+                </div>
+                <!-- Dropdown for Pembelian -->
+                <div class="nav-item" data-target="pembelian">
+                    <i class="fas fa-shopping-cart"></i> Pembelian & Stok
+                </div>
+                <div class="nav-item" data-target="pakan">
+                    <i class="fas fa-utensils"></i> Pemberian Pakan
+                </div>
+                <div class="nav-item" data-target="populasi">
+                    <i class="fas fa-chart-line"></i> Riwayat Populasi
+                </div>
+                <div class="nav-item" data-target="admin">
+                    <i class="fas fa-users-cog"></i> Data Admin
+                </div>
+                <!-- Settings Link -->
+                <div class="nav-item" data-target="settings">
+                    <i class="fas fa-cog"></i> Pengaturan
+                </div>
+                <!-- Logs Link -->
+
+                <div class="nav-item" onclick="Auth.logout()">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </div>
+            </nav>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+            <div class="top-bar" style="flex-wrap: wrap; height: auto; gap: 1rem;">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <button class="btn btn-outline mobile-visible" id="toggleSidebar" style="padding: 0.5rem;"><i class="fas fa-bars"></i></button>
+                    <h2 style="margin:0;">Dashboard</h2>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 1rem; margin-left: auto;">
+                    <span>Hai, <strong id="adminName">Admin</strong></span>
+                    <div style="width: 40px; height: 40px; background: #ddd; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-user"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STATUS TEXT (Moved to Overview) -->
+            
+            <!-- CMS / ANNOUNCEMENT CONTAINER -->
+            <div id="announcement-container" style="display:none; margin-bottom: 2rem;">
+                <!-- Filled by CmsManager -->
+            </div>
+
+            <!-- SECTION: OVERVIEW -->
+            <div id="overview" class="section-content active">
+                <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; gap: 1rem;">
+                    <h4 id="globalPeriodStatus" style="color: var(--primary); margin: 0;">Menampilkan data...</h4>
+                    
+                    <div id="globalFilterContainer" style="display: flex; gap: 0.5rem; align-items: center; padding: 0;">
+                        <select id="globalMonth" class="form-select" style="padding: 0.3rem 2rem 0.3rem 0.5rem; font-size: 0.9rem; width: auto;">
+                            <!-- JS sets options -->
+                        </select>
+                        <select id="globalYear" class="form-select" style="padding: 0.3rem 2rem 0.3rem 0.5rem; font-size: 0.9rem; width: auto;">
+                            <!-- JS sets options -->
+                        </select>
+                        <button class="btn btn-sm btn-primary" onclick="DashboardManager.applyGlobalFilter()">
+                            <i class="fas fa-filter"></i> Apply
+                        </button>
+                    </div>
+                </div>
+
+                <div class="stats-grid" style="margin: 0; margin-bottom: 2rem;">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-dove"></i></div>
+                        <div class="stat-value" id="dash-total-puyuh">0</div>
+                        <div class="stat-label">Total Puyuh</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-egg"></i></div>
+                        <div class="stat-value" id="dash-total-telur">0</div>
+                        <div class="stat-label">Produksi Telur (Hari Ini)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-wallet"></i></div>
+                        <div class="stat-value" id="dash-expenses" style="font-size: 1.5rem;">Rp 0</div>
+                        <div class="stat-label">Pengeluaran Bulan Ini</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                <div class="card">
+                    <h3 class="mb-3">Tren Produksi Telur (Harian)</h3>
+                    <div id="productionEmpty" class="chart-message">
+                        <i class="fas fa-chart-line"></i> 
+                        <span>Belum ada data produksi untuk periode ini.</span>
+                    </div>
+                    <canvas id="productionChart" style="max-height: 300px;"></canvas>
+                </div>
+
+                <!-- Expense Analysis -->
+                <div style="margin-top: 1.5rem;">
+                    <div class="card">
+                        <h3 class="mb-3">Pengeluaran per Kategori</h3>
+                        <div id="expenseCategoryEmpty" class="chart-message">
+                            <i class="fas fa-wallet"></i>
+                            <span>Belum ada pengeluaran tercatat untuk periode ini.</span>
+                        </div>
+                        <canvas id="expenseCategoryChart" style="max-height: 300px;"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION: KANDANG -->
+            <div id="kandang" class="section-content">
+                <div class="card">
+                    <div class="section-header">
+                        <h3>Daftar Kandang & Populasi</h3>
+                        <div class="action-btn-group">
+                             <button class="btn btn-primary" onclick="KandangManager.openModal()"><i class="fas fa-plus"></i> Tambah Kandang</button>
+                        </div>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Nama Kandang</th>
+                                    <th>Kapasitas</th>
+                                    <th>Jumlah Puyuh</th>
+                                    <th>Status</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="kandangTableBody">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION: PEMBELIAN -->
+            <div id="pembelian" class="section-content">
+                <div class="card">
+                    <div class="section-header">
+                        <h3>Riwayat Pembelian</h3>
+                        <div class="action-btn-group">
+                             <button class="btn btn-secondary btn-sm" onclick="PembelianManager.exportData()">
+                                <i class="fas fa-file-csv"></i> Export CSV
+                             </button>
+                             <button class="btn btn-primary" onclick="PembelianManager.openModal()">
+                                <i class="fas fa-plus"></i> Input Pembelian
+                             </button>
+                        </div>
+                    </div>
+
+                    <div class="search-container">
+                        <input type="text" id="purchaseSearch" class="search-input" placeholder="Cari item atau kategori...">
+                        <button class="btn btn-secondary" onclick="PembelianManager.search()">Cari</button>
+                    </div>
+
+                    <div style="overflow-x: auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Tanggal</th>
+                                    <th>Item</th>
+                                    <th>Kategori</th>
+                                    <th>Jml</th>
+                                    <th>Total</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="purchaseTableBody">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION: PAKAN -->
+            <div id="pakan" class="section-content">
+                <div class="card">
+                     <div class="section-header">
+                        <h3>Riwayat Pemberian Pakan</h3>
+                        <div class="action-btn-group">
+                            <button class="btn btn-secondary btn-sm" onclick="PakanManager.exportData()">
+                                <i class="fas fa-file-csv"></i> Export CSV
+                            </button>
+                            <button class="btn btn-primary" onclick="PakanManager.openModal()"><i class="fas fa-plus"></i> Catat Pakan</button>
+                        </div>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Tanggal</th>
+                                    <th>Kandang</th>
+                                    <th>Jenis</th>
+                                    <th>Jumlah</th>
+                                    <th>Catatan</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pakanTableBody">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION: INKUBATOR -->
+            <div id="inkubator" class="section-content">
+                <div class="card">
+                    <div class="section-header">
+                        <h3>Data Inkubator</h3>
+                        <div class="action-btn-group">
+                             <button class="btn btn-secondary btn-sm" onclick="InkubatorManager.exportData()">
+                                <i class="fas fa-file-csv"></i> Export CSV
+                            </button>
+                            <button class="btn btn-primary" onclick="InkubatorManager.openModal()">
+                                <i class="fas fa-plus"></i> Tambah Data
+                            </button>
+                        </div>
+                    </div>
+
+                    <div style="overflow-x:auto">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Tanggal Masuk</th>
+                                    <th>Jumlah Telur</th>
+                                    <th>Sumber</th>
+                                    <th>Estimasi / Timer</th>
+                                    <th>Status</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inkubatorTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION: POPULASI -->
+            <div id="populasi" class="section-content">
+                <div class="card">
+                     <div class="section-header">
+                        <h3>Riwayat Populasi (Mati/Jual)</h3>
+                        <div class="action-btn-group">
+                             <button class="btn btn-secondary btn-sm" onclick="PopulasiManager.exportData()">
+                                <i class="fas fa-file-csv"></i> Export CSV
+                            </button>
+                            <button class="btn btn-primary" onclick="PopulasiManager.openModal()">
+                                <i class="fas fa-plus"></i> Catat Perubahan
+                            </button>
+                        </div>
+                    </div>
+
+                    <div style="overflow-x:auto">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Tanggal</th>
+                                    <th>Kandang</th>
+                                    <th>Jenis</th>
+                                    <th>Jumlah</th>
+                                    <th>Keterangan</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="populasiTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION: ADMIN MANAGER -->
+            <div id="admin" class="section-content">
+                <div class="card">
+                     <div class="section-header">
+                        <h3>Manajemen Admin</h3>
+                        <div class="action-btn-group">
+                            <button class="btn btn-outline btn-sm" onclick="AdminManager.renderTable(true)">
+                                <i class="fas fa-sync-alt"></i> Refresh Data
+                            </button>
+                        </div>
+                    </div>
+                    <div style="overflow-x:auto">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Tanggal Daftar</th>
+                                    <th>Nama</th>
+                                    <th>Email</th>
+                                    <th>Status</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <!-- SECTION: SETTINGS -->
+            <div id="settings" class="section-content">
+                <div class="card" style="max-width: 600px; margin: 0 auto;">
+                    <h3>Pengaturan Profil</h3>
+                    <hr style="border-color: rgba(255,255,255,0.1); margin: 1rem 0;">
+                    
+                    <form onsubmit="event.preventDefault(); SettingsManager.updateProfile();">
+                        <div class="form-group">
+                            <label class="form-label">Email (Login)</label>
+                            <input type="text" id="set_email" class="form-input" readonly style="background: rgba(255,255,255,0.05); color: #aaa;">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Nama Lengkap</label>
+                            <input type="text" id="set_fullName" class="form-input" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Simpan Profil</button>
+                    </form>
+
+                    <h3 style="margin-top: 2rem;">Ganti Password</h3>
+                    <hr style="border-color: rgba(255,255,255,0.1); margin: 1rem 0;">
+                    
+                    <form onsubmit="event.preventDefault(); SettingsManager.changePassword();">
+                        <div class="form-group">
+                            <label class="form-label">Password Baru</label>
+                            <input type="password" id="set_newPass" class="form-input" placeholder="Minimal 6 Karkater">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Konfirmasi Password Baru</label>
+                            <input type="password" id="set_confirmPass" class="form-input" placeholder="Ulangi Password Baru">
+                        </div>
+                        <button type="submit" class="btn btn-danger">Update Password</button>
+                    </form>
+                </div>
+            </div>
+
+        </main>
+    </div>
+    <!-- MODAL ADD/EDIT KANDANG -->
+    <div id="kandangModal" class="modal">
+        <div class="modal-content">           
+             <h3 class="mb-3" id="kandangModalTitle">Tambah Kandang</h3>
+            <form id="kandangForm" onsubmit="event.preventDefault(); KandangManager.save();">
+                <input type="hidden" id="k_id">
+                <div class="form-group">
+                    <label class="form-label">Nama Kandang</label>
+                    <input type="text" id="k_name" class="form-input" required placeholder="Misal: Kandang A">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Kapasitas Maksimal</label>
+                    <input type="number" id="k_capacity" class="form-input" required min="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Jumlah Puyuh Saat Ini</label>
+                    <input type="number" id="k_count" class="form-input" required min="0">
+                </div>
+                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1rem;">
+                    <button type="button" class="btn btn-outline" onclick="KandangManager.closeModal()">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan Data</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL INKUBATOR -->
+    <div id="inkubatorModal" class="modal">
+        <div class="modal-content">
+            <h3 class="mb-3">Data Inkubasi</h3>
+            <form id="inkubatorForm" onsubmit="event.preventDefault(); InkubatorManager.save();">
+                <input type="hidden" id="ink_id">
+                <div class="form-group">
+                    <label class="form-label" for="ink_date">Tanggal Masuk</label>
+                    <input type="date" id="ink_date" class="form-input" required onchange="InkubatorManager.calcEstimation()">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="ink_estimation">Estimasi Menetas (+17 Hari)</label>
+                    <input type="text" id="ink_estimation" class="form-input" readonly style="background: rgba(255,255,255,0.05); color: var(--warning);">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="ink_count">Jumlah Telur</label>
+                    <input type="number" id="ink_count" class="form-input" required min="1">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="ink_source">Sumber Telur</label>
+                    <select id="ink_source" class="form-select">
+                        <option value="produksi">Produksi Sendiri</option>
+                        <option value="beli">Beli dari Luar</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="ink_status">Status</label>
+                    <select id="ink_status" class="form-select">
+                        <option value="inkubasi">Proses Inkubasi</option>
+                        <option value="menetas">Sudah Menetas</option>
+                        <option value="gagal">Gagal / Busuk</option>
+                    </select>
+                </div>
+                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1rem;">
+                    <button type="button" class="btn btn-secondary" onclick="InkubatorManager.closeModal()">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL PAKAN -->
+    <div id="pakanModal" class="modal">
+        <div class="modal-content">
+            <h3 class="mb-3">Catat Pemberian Pakan</h3>
+            <form id="pakanForm" onsubmit="event.preventDefault(); PakanManager.save();">
+                <input type="hidden" id="pak_id">
+                <div class="form-group">
+                    <label class="form-label">Pilih Kandang</label>
+                    <select id="pak_kandang" class="form-select" required>
+                        <option value="">-- Pilih Kandang --</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Jumlah (Kg)</label>
+                    <div style="margin-bottom: 5px;">
+                        <small id="pak_stock_info" style="font-weight: bold; color: #666;">Memuat stok...</small>
+                    </div>
+                    <input type="number" id="pak_amount" class="form-input" step="0.1" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Catatan</label>
+                    <textarea id="pak_note" class="form-input" rows="3"></textarea>
+                </div>
+                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1rem;">
+                    <button type="button" class="btn btn-secondary" onclick="PakanManager.closeModal()">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL POPULASI -->
+    <div id="populasiModal" class="modal">
+        <div class="modal-content">
+            <h3 class="mb-3">Catat Perubahan Populasi</h3>
+            <form id="populasiForm" onsubmit="event.preventDefault(); PopulasiManager.save();">
+                <div class="form-group">
+                    <label class="form-label">Tanggal</label>
+                    <input type="date" id="pop_date" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Pilih Kandang</label>
+                    <select id="pop_kandang" class="form-select" required>
+                        <option value="">-- Pilih Kandang --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Jenis Perubahan</label>
+                    <select id="pop_type" class="form-select" required>
+                        <option value="Mati">Mati (Kurangi Populasi)</option>
+                        <option value="Jual">Jual (Kurangi Populasi)</option>
+                        <option value="Afkir">Afkir (Kurangi Populasi)</option>
+                        <option value="Masuk">Masuk (Tambah Populasi)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Jumlah (Ekor)</label>
+                    <input type="number" id="pop_count" class="form-input" required min="1">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Keterangan</label>
+                    <textarea id="pop_note" class="form-input" rows="2"></textarea>
+                </div>
+                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1rem;">
+                    <button type="button" class="btn btn-secondary" onclick="PopulasiManager.closeModal()">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan & Update Kandang</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL DETAIL KANDANG (Timeline) -->
+    <div id="kandangDetailModal" class="modal">
+        <div class="modal-content" style="max-height: 80vh; overflow-y: auto;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem">
+                <h3 id="kandangDetailTitle">Detail Aktivitas</h3>
+                <button class="btn btn-outline btn-sm" onclick="KandangDetailManager.closeModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <input type="hidden" id="detail_kandang_id">
+            
+            <div id="activityTimeline">
+                <!-- Timelines go here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+ <!-- New Manager -->
+    <!-- MODAL PEMBELIAN -->
+    <div id="pembelianModal" class="modal">
+        <div class="modal-content">
+            <h3 class="mb-3">Input Pembelian</h3>
+            <form id="purchaseForm" onsubmit="event.preventDefault(); PembelianManager.save();">
+                <div class="form-group">
+                    <label class="form-label" for="p_item">Nama Item</label>
+                    <input type="text" id="p_item" class="form-input" required placeholder="Contoh: Pakan A">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="p_category">Kategori</label>
+                    <select id="p_category" class="form-input">
+                        <option value="Pakan">Pakan</option>
+                        <option value="Obat">Obat / Vitamin</option>
+                        <option value="Perlengkapan">Perlengkapan</option>
+                        <option value="Lainnya">Lainnya</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="p_qty">Jumlah</label>
+                    <input type="number" id="p_qty" class="form-input" required min="1">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="p_price">Harga Satuan (Rp)</label>
+                    <input type="number" id="p_price" class="form-input" required min="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="p_date">Tanggal</label>
+                    <input type="date" id="p_date" class="form-input" required>
+                </div>
+                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1rem;">
+                    <button type="button" class="btn btn-secondary" onclick="PembelianManager.closeModal()">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

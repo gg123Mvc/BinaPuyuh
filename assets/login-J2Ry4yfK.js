@@ -1,0 +1,6 @@
+import"./config-B2rk4czd.js";/* empty css              */import"./app-BgDMR-5F.js";window.onload=function(){if(typeof Auth>"u"){const e=`CRITICAL: "Auth" class is not defined. 
+
+Possibilities:
+1. js/app.js failed to load (Check Network Tab)
+2. js/app.js has a syntax error (Check Console)
+3. js/config.js is missing or invalid`;console.error(e),alert(e),document.getElementById("error-msg").innerText="System Error: Failed to load Application Logic.",document.getElementById("error-msg").style.display="block",document.querySelector('button[type="submit"]').disabled=!0;return}document.getElementById("loginForm").addEventListener("submit",async e=>{e.preventDefault();const r=document.getElementById("username").value,a=document.getElementById("password").value,n=document.getElementById("error-msg"),t=e.target.querySelector('button[type="submit"]');t.disabled=!0,t.innerText="MEMPROSES...";try{await Auth.login(r,a)&&(window.location.href="dashboard.html")}catch(o){n.innerText=o.message||"Login gagal",n.style.display="block";const s=document.querySelector(".auth-card");s.style.transform="translateX(5px)",setTimeout(()=>s.style.transform="translateX(-5px)",50),setTimeout(()=>s.style.transform="translate(0)",100)}finally{t.disabled=!1,t.innerText="MASUK SEKARANG"}})};
