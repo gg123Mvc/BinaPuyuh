@@ -294,12 +294,12 @@ const DashboardManager = {
         if (data.length === 0 || data.every(v => v === 0)) {
             console.log(`[BarChart] Empty data for ${canvasId}. Showing empty state.`);
             ctx.style.display = 'none';
-            if (emptyEl) emptyEl.style.display = 'block';
+            if (emptyEl) emptyEl.classList.add('active');
             return;
         }
 
         ctx.style.display = 'block';
-        if (emptyEl) emptyEl.style.display = 'none';
+        if (emptyEl) emptyEl.classList.remove('active');
 
         const bgColors = labels.map((_, i) => `hsl(${i * 60}, 70%, 60%)`);
 
@@ -338,13 +338,13 @@ const DashboardManager = {
         // Strict empty check: Is array empty or all 0?
         if (data.length === 0 || data.every(v => v === 0)) {
              ctx.style.display = 'none';
-             if (emptyEl) emptyEl.style.display = 'block';
+             if (emptyEl) emptyEl.classList.add('active');
              return;
         }
 
         // Reset visibility
         ctx.style.display = 'block';
-        if (emptyEl) emptyEl.style.display = 'none';
+        if (emptyEl) emptyEl.classList.remove('active');
         
         this.charts[canvasId] = new Chart(ctx, {
             type: 'line',
