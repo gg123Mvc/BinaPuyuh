@@ -26,9 +26,9 @@
 
     <!-- Load Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="./js/config.js"></script> <!-- Defines window.supabaseClient -->
+    <script type="module" src="./js/config.js"></script> <!-- Defines window.supabaseClient -->
     
-    <script>
+    <script type="module">
         document.addEventListener('DOMContentLoaded', async () => {
             const statusIcon = document.getElementById('statusIcon');
             const statusTitle = document.getElementById('statusTitle');

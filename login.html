@@ -76,9 +76,9 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="./js/config.js"></script>
-    <script src="./js/app.js?v=2"></script>
-    <script>
+    <script type="module" src="./js/config.js"></script>
+    <script type="module" src="./js/app.js?v=2"></script>
+    <script type="module">
         window.onload = function() {
             if (typeof Auth === 'undefined') {
                 const errorMsg = 'CRITICAL: "Auth" class is not defined. \n\nPossibilities:\n1. js/app.js failed to load (Check Network Tab)\n2. js/app.js has a syntax error (Check Console)\n3. js/config.js is missing or invalid';

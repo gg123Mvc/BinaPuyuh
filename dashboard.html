@@ -539,29 +539,33 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="./js/config.js"></script>
-    <script src="./js/app.js"></script>
-    <script src="./js/modal.js"></script>
-    <script src="./js/export.js"></script>
+    <script type="module" src="./js/config.js"></script>
+    <script type="module" src="./js/app.js"></script>
+    <script type="module" src="./js/modal.js"></script>
+    <script type="module" src="./js/export.js"></script>
 
-    <script src="./src/CmsManager.js"></script>
-    <script src="./src/SettingsManager.js"></script>
-    <script src="./src/InkubatorManager.js"></script>
-    <script src="./src/KandangManager.js"></script>
-    <script src="./src/PembelianManager.js"></script>
-    <script src="./src/PakanManager.js"></script>
-    <script src="./src/PopulasiManager.js"></script>
-    <script src="./src/AdminManager.js"></script>
-    <script src="./src/DebugManager.js"></script>
-    <script src="./src/KandangDetailManager.js"></script> <!-- New Manager -->
-    <script src="./js/dashboard.js?v=999"></script>
-    <script>
+    <script type="module" src="./src/CmsManager.js"></script>
+    <script type="module" src="./src/SettingsManager.js"></script>
+    <script type="module" src="./src/InkubatorManager.js"></script>
+    <script type="module" src="./src/KandangManager.js"></script>
+    <script type="module" src="./src/PembelianManager.js"></script>
+    <script type="module" src="./src/PakanManager.js"></script>
+    <script type="module" src="./src/PopulasiManager.js"></script>
+    <script type="module" src="./src/AdminManager.js"></script>
+    <script type="module" src="./src/DebugManager.js"></script>
+    <script type="module" src="./src/KandangDetailManager.js"></script> <!-- New Manager -->
+    <script type="module" src="./js/dashboard.js?v=999"></script>
+    <script type="module">
         // Init all sections with Safety Checks
         document.addEventListener('DOMContentLoaded', () => {
             console.log('🚀 Dashboard Init Started');
             
             if (!window.supabaseClient) {
-                alert('CRITICAL ERROR: Supabase Client failed to load. Check js/config.js');
+                console.error('CRITICAL: Supabase Client missing.');
+                const banner = document.createElement('div');
+                banner.style.cssText = 'background: #ef4444; color: white; padding: 1rem; text-align: center; position: fixed; top: 0; left: 0; width: 100%; z-index: 99999; font-weight: bold;';
+                banner.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Gagal terhubung ke Database. <br><span style="font-size:0.9rem; font-weight:normal;">Pastikan Anda menjalankan aplikasi dengan <code>npm run dev</code> atau file .env sudah dikonfigurasi.</span>';
+                document.body.prepend(banner);
                 return;
             }
 
