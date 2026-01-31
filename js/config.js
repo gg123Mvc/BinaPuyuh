@@ -31,7 +31,7 @@ if (!SUPABASE_URL || !SUPABASE_KEY) {
     if (isLocal) {
         alert('ERROR: Konfigurasi Database tidak ditemukan!\n\nPenyebab: Browser tidak membaca file .env secara langsung (mode Static/XAMPP/File).\n\nSOLUSI:\n1. Buka Terminal\n2. Ketik "npm run dev"\n3. Buka link localhost yang muncul.');
     } else {
-        alert('ERROR: Konfigurasi Supabase belum diatur di server hosting (Environment Variables).');
+        alert('ERROR: Konfigurasi Supabase KOSONG di Hosting ini.\n\nJIKA DI GITHUB PAGES:\nAnda mungkin melakukan "Push" sebelum memasukkan "Secrets".\n\nSOLUSI:\n1. Pastikan Secrets (VITE_SUPABASE_URL, dll) ada di Settings > Secrets > Actions.\n2. Buka tab "Actions", pilih workflow terakhir.\n3. Klik "Re-run all jobs".');
     }
 } else {
     // 3. Initialize Client
