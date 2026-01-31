@@ -150,7 +150,7 @@ class PakanManager {
         
         const sb = window.supabaseClient;
         const kandangId = document.getElementById('pak_kandang').value;
-        const type = document.getElementById('pak_type').value;
+        // Removed pak_type input
         const amount = parseFloat(document.getElementById('pak_amount').value);
         const note = document.getElementById('pak_note').value;
         
@@ -166,7 +166,7 @@ class PakanManager {
 
         const payload = {
             kandang_id: kandangId,
-            jenis_pakan: type,
+            jenis_pakan: 'Standard',
             jumlah_pakan: amount,
             catatan: note,
             created_by: Auth.getCurrentName(),
@@ -189,7 +189,7 @@ class PakanManager {
                     activity_type: 'PAKAN',
                     quantity: amount,
                     unit: 'KG',
-                    notes: `(Pakan) ${type} - ${note || ''}`
+                    notes: `(Pakan) ${note || ''}`
                 });
             }
         }

@@ -106,10 +106,10 @@ class AdminManager {
 
     static async approve(id, email) {
         const confirmed = await window.Modal.confirm(
-            `Sistem akan mengirimkan email OTP otomatis ke:\n${email}`,
+            `Setujui admin ini? User akan bisa login setelah disetujui.`,
             'Setujui Admin Ini?',
             'primary',
-            'Ya, Setujui & Kirim'
+            'Ya, Setujui'
         );
         
         if (!confirmed) return;
@@ -124,37 +124,7 @@ class AdminManager {
             return;
         }
 
-        // 2. Send Magic Link / OTP
-        // Note: This relies on Supabase Email Provider being enabled
-        // Use a non-blocking toast or just wait? Let's show a loading alert or just proceed.
-        // Since we don't have a toast system, we'll just await the result.
-        
-        const { error: otpError } = await sb.auth.signInWithOtp({ 
-            email: email,
-            options: {
-                shouldCreateUser: false, // User must exist
-                emailRedirectTo: window.location.origin + '/Puyuh/verify.html' // Force redirect to custom page
-            }
-        });
-
-        if (otpError) {
-            console.error(otpError);
-            if (otpError.message.includes('rate limit')) {
-                await window.Modal.alert(
-                    'GAGAL Mengirim Email: Batas pengiriman email terlampaui (Rate Limit).\n\nSupabase membatasi jumlah email ke alamat yang sama dalam waktu singkat.\n\nSolusi:\n1. Tunggu beberapa saat (biasanya 1 jam).\n2. Atau gunakan EMAIL LAIN untuk testing.',
-                    'Rate Limit Exceeded',
-                    'error'
-                );
-            } else {
-                await window.Modal.alert(
-                    'User berhasil disetujui, TAPI GAGAL mengirim email OTP: ' + otpError.message,
-                    'Warning',
-                    'warning'
-                );
-            }
-        } else {
-            await window.Modal.alert('User disetujui dan email OTP telah dikirim.', 'Sukses', 'success');
-        }
+        await window.Modal.alert('User berhasil disetujui. Silakan infokan ke user untuk login.', 'Sukses', 'success');
         
         this.renderTable();
     }

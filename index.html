@@ -133,14 +133,52 @@
     <script src="./js/app.js"></script>
     <script>
       // Simple script to load public stats on landing page
-      document.addEventListener("DOMContentLoaded", () => {
-        const data = StorageManager.getData();
-        document.getElementById("total-puyuh").innerText =
-          data.stats.totalPuyuh || 1250;
-        document.getElementById("total-telur").innerText =
-          data.stats.todayEgg || 854;
-        document.getElementById("total-kandang").innerText =
-          data.kandangs.length || 5;
+      document.addEventListener("DOMContentLoaded", async () => {
+        const sb = window.supabaseClient;
+        
+        // Default values
+        const els = {
+          puyuh: document.getElementById("total-puyuh"),
+          telur: document.getElementById("total-telur"),
+          kandang: document.getElementById("total-kandang")
+        };
+
+        if (!sb) {
+          console.warn("Supabase not initialized");
+          return;
+        }
+
+        try {
+          // 1. Fetch Kandang (Count & Sum Puyuh)
+          // We assume public read access OR user is logged in. 
+          // If RLS blocks this for anon, it will catch error.
+          const { data: kandangs, error: kError } = await sb.from('kandang').select('jumlah_puyuh');
+          
+          if (!kError && kandangs) {
+             const totalPuyuh = kandangs.reduce((sum, k) => sum + (k.jumlah_puyuh || 0), 0);
+             const totalKandang = kandangs.length;
+             
+             els.puyuh.innerText = totalPuyuh;
+             els.kandang.innerText = totalKandang;
+          }
+
+          // 2. Fetch Todays Egg Production
+          const today = new Date().toISOString().split('T')[0];
+          const { data: eggs, error: eError } = await sb
+            .from('produksi_telur')
+            .select('jumlah')
+            .eq('tanggal', today);
+
+          if (!eError && eggs) {
+             const totalTelur = eggs.reduce((sum, e) => sum + (e.jumlah || 0), 0);
+             els.telur.innerText = totalTelur;
+          }
+
+        } catch (err) {
+          console.error("Error fetching landing stats:", err);
+          // Keep defaults or set to 0? Defaults might look better for marketing.
+          // But user asked for "Real Data". If fetch fails, it means 0 access or no data.
+        }
       });
     </script>
   </body>
