@@ -61,7 +61,7 @@ class PopulasiManager {
                 <td>${dateStr}</td>
                 <td><strong>${kandangName}</strong></td>
                 <td><span style="color:${color}; font-weight:bold">${item.jenis_perubahan}</span></td>
-                <td>${item.jumlah} Ekor</td>
+                <td>${item.jumlah} ${item.satuan || 'ekor'}</td>
                 <td>${item.keterangan || '-'}</td>
                 <td>
                     <button class="btn btn-danger btn-sm" onclick="PopulasiManager.delete(${item.id})"><i class="fas fa-trash"></i></button>
@@ -95,6 +95,7 @@ class PopulasiManager {
             kandang_id: kandangId,
             jenis_perubahan: type, // Mati, Jual, Afkir, Masuk
             jumlah: count,
+            satuan: 'ekor', // Population is always counted in ekor
             keterangan: note,
             created_at: date, // Using created_at as the 'Tanggal'
             user_input: Auth.getCurrentName() // Using user_input instead of created_by

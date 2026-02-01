@@ -64,7 +64,7 @@ class PembelianManager {
                 <td>${p.tanggal}</td>
                 <td>${p.nama_barang}</td>
                 <td><span style="font-size:0.8rem; padding:2px 6px; background:rgba(255,255,255,0.1); border-radius:4px;">${p.kategori}</span></td>
-                <td>${p.jumlah} ${p.satuan || ''}</td>
+                <td>${p.jumlah} ${p.satuan || 'pcs'}</td>
                 <td>${formatCurrency(p.harga_total)}</td>
                 <td>
                     <button class="btn btn-danger btn-sm" onclick="PembelianManager.delete(${p.id})"><i class="fas fa-trash"></i></button>
@@ -95,11 +95,12 @@ class PembelianManager {
         const item = document.getElementById('p_item').value;
         const category = document.getElementById('p_category').value.toLowerCase(); 
         const qty = parseInt(document.getElementById('p_qty').value);
+        const satuan = document.getElementById('p_satuan').value.toLowerCase();
         const price = parseInt(document.getElementById('p_price').value);
         const date = document.getElementById('p_date').value;
 
-        if (!item || !date || isNaN(qty) || isNaN(price)) {
-            alert('Mohon lengkapi data pembelian.');
+        if (!item || !date || isNaN(qty) || isNaN(price) || !satuan) {
+            alert('Mohon lengkapi data pembelian (termasuk satuan).');
             return;
         }
 
@@ -109,7 +110,7 @@ class PembelianManager {
             nama_barang: item,
             kategori: category,
             jumlah: qty,
-            satuan: 'pcs', // Default or add input for it
+            satuan: satuan,
             harga_total: total,
             created_by: Auth.getCurrentName(),
             tanggal: date
@@ -156,6 +157,27 @@ class PembelianManager {
 
     static closeModal() {
         document.getElementById('pembelianModal').classList.remove('open');
+    }
+
+    static onCategoryChange() {
+        const category = document.getElementById('p_category').value.toLowerCase();
+        const satuanSelect = document.getElementById('p_satuan');
+        
+        // Category to unit mapping
+        const categoryMap = {
+            'pakan': 'kg',
+            'obat': 'ml',
+            'obat / vitamin': 'ml',
+            'vitamin': 'ml',
+            'perlengkapan': 'pcs'
+        };
+        
+        const defaultUnit = categoryMap[category] || 'pcs';
+        
+        // Set the select value
+        if (satuanSelect) {
+            satuanSelect.value = defaultUnit;
+        }
     }
 }
 

@@ -101,6 +101,22 @@ class EstimasiProduksiManager {
                         statusIcon = 'fa-check-circle';
                         statusProduksi = `<strong style="color: ${statusColor};">Produksi Optimal</strong><br><small>Hari ke-${daysSinceEntry}</small>`;
                     }
+                    
+                    // === PRODUCTION HEALTH CHECK ===
+                    const healthCheck = this.checkProductionHealth(kandang, daysSinceEntry, statsMap[kandang.id] || { total: 0 });
+                    if (healthCheck.hasAlert) {
+                        // Override with warning status
+                        statusColor = healthCheck.severity === 'critical' ? '#F44336' : '#FFA726';
+                        statusIcon = healthCheck.severity === 'critical' ? 'fa-exclamation-circle' : 'fa-exclamation-triangle';
+                        statusProduksi = `
+                            <strong style="color: ${statusColor};">${healthCheck.alertTitle}</strong><br>
+                            <small>${healthCheck.alertMessage}</small><br>
+                            <button onclick="EstimasiProduksiManager.showRecommendations(${JSON.stringify(healthCheck).replace(/"/g, '&quot;')}, '${kandang.nama_kandang}')" 
+                                    style="margin-top: 0.5rem; background: var(--primary-color); color: white; border: none; padding: 0.3rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.75rem;">
+                                <i class="fas fa-lightbulb"></i> Lihat Solusi
+                            </button>
+                        `;
+                    }
                 } else {
                     console.warn(`⚠️ Kandang ${kandang.nama_kandang}: tanggal_masuk belum diisi`);
                 }
@@ -165,6 +181,81 @@ class EstimasiProduksiManager {
         }
     }
     
+    /**
+     * Check if production health matches expected rates
+     * Returns alert object if anomaly detected
+     */
+    static checkProductionHealth(kandang, ageInDays, productionStats) {
+        const totalQuails = kandang.jumlah_puyuh || 0;
+        const totalEggsToday = productionStats.total || 0;
+        
+        // Calculate actual production rate (eggs per quail)
+        const actualRate = totalQuails > 0 ? (totalEggsToday / totalQuails) : 0;
+        
+        // Expected rates by age range
+        let expectedRate = 0;
+        let alertType = null;
+        let severity = 'info';
+        let alertTitle = '';
+        let alertMessage = '';
+        let recommendations = [];
+        
+        if (ageInDays < 40) {
+            // Days 0-39: No production expected
+            expectedRate = 0;
+            if (actualRate > 0.05) { // More than 5% producing
+                alertType = 'early_production';
+                severity = 'warning';
+                alertTitle = 'Produksi Prematur';
+                alertMessage = 'Puyuh bertelur terlalu dini (< 40 hari)';
+                recommendations = ['check_stress', 'review_lighting'];
+            }
+        } else if (ageInDays >= 40 && ageInDays < 45) {
+            // Days 40-44: Starting production (5-20% expected)
+            expectedRate = 0.10;
+            // No alerts in this phase - normal variation
+        } else if (ageInDays >= 45 && ageInDays < 50) {
+            // Days 45-49: Ramping up (30-50% expected)
+            expectedRate = 0.40;
+            if (actualRate < 0.20) { // Less than 20%
+                alertType = 'low_production';
+                severity = 'warning';
+                alertTitle = 'Produksi Rendah';
+                alertMessage = `${Math.round(actualRate * 100)}% (expected: 30-50%)`;
+                recommendations = ['check_nutrition', 'check_health'];
+            }
+        } else {
+            // Days 50+: Optimal production (70-80% expected)
+            expectedRate = 0.75;
+            if (actualRate === 0) {
+                // CRITICAL: No production at all
+                alertType = 'no_production';
+                severity = 'critical';
+                alertTitle = '⚠️ TIDAK BERTELUR';
+                alertMessage = `Umur ${ageInDays} hari - sudah seharusnya produksi`;
+                recommendations = ['switch_feed', 'add_medicine', 'check_environment', 'check_lighting'];
+            } else if (actualRate < 0.50) { // Less than 50%
+                alertType = 'low_production';
+                severity = actualRate < 0.30 ? 'critical' : 'warning';
+                alertTitle = 'Produksi Rendah';
+                alertMessage = `${Math.round(actualRate * 100)}% (expected: 70-80%)`;
+                recommendations = ['check_nutrition', 'check_environment', 'check_health'];
+            }
+        }
+        
+        return {
+            hasAlert: alertType !== null,
+            alertType,
+            severity,
+            alertTitle,
+            alertMessage,
+            expectedRate,
+            actualRate,
+            ageInDays,
+            recommendations
+        };
+    }
+    
     static async simpanTelur(kandangId, kandangName) {
         const jumlahInput = document.getElementById(`telur_${kandangId}`);
         const kualitasInput = document.getElementById(`kualitas_${kandangId}`);
@@ -209,6 +300,157 @@ class EstimasiProduksiManager {
                 DashboardManager.renderStats();
             }
         }
+    }
+    
+    /**
+     * Show recommendations modal with actionable solutions
+     */
+    static showRecommendations(healthCheckData, kandangName) {
+        const recommendations = {
+            'switch_feed': {
+                icon: '🌾',
+                title: 'Beralih ke Pakan Berkualitas',
+                desc: 'Gunakan pakan dengan protein min 18-20%',
+                action: () => {
+                    alert(`💡 Buka form Pakan dan pilih "Pakan Berkualitas" untuk ${kandangName}`);
+                    // TODO: Auto-open Pakan modal with pre-selected quality feed
+                }
+            },
+            'add_medicine': {
+                icon: '💊',
+                title: 'Berikan Obat/Vitamin',
+                desc: 'Vitamin untuk meningkatkan produktivitas',
+                action: () => {
+                    alert(`💡 Buka form Pembelian dan beli Obat/Vitamin untuk ${kandangName}`);
+                    // TODO: Navigate to Pembelian with Obat category
+                }
+            },
+            'check_environment': {
+                icon: '🌡️',
+                title: 'Periksa Kondisi Kandang',
+                desc: 'Suhu ideal: 20-25°C, Kepadatan: max 40 ekor/m²',
+                action: null
+            },
+            'check_lighting': {
+                icon: '💡',
+                title: 'Periksa Pencahayaan',
+                desc: 'Puyuh butuh 14-16 jam cahaya per hari',
+                action: null
+            },
+            'check_nutrition': {
+                icon: '🍽️',
+                title: 'Periksa Kebutuhan Pakan',
+                desc: 'Pastikan pakan cukup dan berkualitas',
+                action: null
+            },
+            'check_health': {
+                icon: '🏥',
+                title: 'Konsultasi Dokter Hewan',
+                desc: 'Periksa kemungkinan penyakit',
+                action: null
+            },
+            'check_stress': {
+                icon: '😰',
+                title: 'Kurangi Stres',
+                desc: 'Hindari kebisingan dan gangguan berlebihan',
+                action: null
+            },
+            'review_lighting': {
+                icon: '🔆',
+                title: 'Tinjau Ulang Pencahayaan',
+                desc: 'Produksi prematur bisa karena pencahayaan berlebihan',
+                action: null
+            }
+        };
+        
+        let html = `
+        <div style="
+            position: fixed; 
+            top: 0; left: 0; 
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            padding: 1rem;
+        " onclick="this.remove()">
+            <div style="
+                background: #1e1e1e;
+                border-radius: 12px;
+                padding: 2rem;
+                max-width: 600px;
+                width: 100%;
+                max-height: 90vh;
+                overflow-y: auto;
+                border: 1px solid rgba(255,255,255,0.1);
+            " onclick="event.stopPropagation()">
+                <h3 style="color: var(--primary-color); margin-bottom: 1rem;">
+                    ${healthCheckData.severity === 'critical' ? '🚨' : '⚠️'} 
+                    Rekomendasi Tindakan
+                </h3>
+                <p style="color: var(--text-dim); margin-bottom: 1.5rem;">
+                    <strong>${kandangName}</strong> - ${healthCheckData.alertMessage}
+                </p>
+                
+                <div style="background: rgba(244,67,54,0.1); border-left: 3px solid #F44336; padding: 1rem; margin-bottom: 1.5rem; border-radius: 4px;">
+                    <strong style="color: #F44336;">Problem:</strong> ${healthCheckData.alertTitle}<br>
+                    <small style="color: var(--text-dim);">Usia ${healthCheckData.ageInDays} hari | Produksi ${Math.round(healthCheckData.actualRate * 100)}%</small>
+                </div>
+                
+                <h4 style="color:white; margin-bottom: 1rem;">Yang Harus Dilakukan:</h4>
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+        `;
+        
+        healthCheckData.recommendations.forEach(recId => {
+            const rec = recommendations[recId];
+            if (rec) {
+                html += `
+                <div style="
+                    background: rgba(255,255,255,0.05);
+                    border-radius: 8px;
+                    padding: 1rem;
+                    border-left: 3px solid var(--primary-color);
+                ">
+                    <div style="display: flex; gap: 0.75rem; align-items: start;">
+                        <span style="font-size: 1.5rem;">${rec.icon}</span>
+                        <div style="flex: 1;">
+                            <strong style="color: white;">${rec.title}</strong><br>
+                            <small style="color: var(--text-dim);">${rec.desc}</small>
+                            ${rec.action ? `<br><button onclick="${rec.action}" style="
+                                margin-top: 0.5rem;
+                                background: var(--primary-color);
+                                color: white;
+                                border: none;
+                                padding: 0.3rem 0.8rem;
+                                border-radius: 4px;
+                                cursor: pointer;
+                                font-size: 0.85rem;
+                            ">Buka Form</button>` : ''}
+                        </div>
+                    </div>
+                </div>
+                `;
+            }
+        });
+        
+        html += `
+                </div>
+                <div style="margin-top: 1.5rem; text-align: right;">
+                    <button onclick="this.closest('[style*=fixed]').remove()" style="
+                        background: var(--secondary-color);
+                        color: white;
+                        border: none;
+                        padding: 0.6rem 1.5rem;
+                        border-radius: 6px;
+                        cursor: pointer;
+                    ">Tutup</button>
+                </div>
+            </div>
+        </div>
+        `;
+        
+        document.body.insertAdjacentHTML('beforeend', html);
     }
 }
 

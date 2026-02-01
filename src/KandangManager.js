@@ -78,8 +78,16 @@ class KandangManager {
                 </td>
                 <td>${kp.kapasitas}</td>
                 <td>
-                    ${kp.jumlah_puyuh} 
-                    <small style="color:${statusColor}">(${usagePercent}%)</small>
+                    <strong>${kp.jumlah_puyuh}</strong> ekor
+                    <small style="color:${statusColor}">(${usagePercent}%)</small><br>
+                    <div style="display: flex; gap: 0.5rem; margin-top: 0.3rem;">
+                        <span style="background: #2196F3; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem;">
+                            ♂ ${kp.jumlah_jantan || 0}
+                        </span>
+                        <span style="background: #E91E63; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem;">
+                            ♀ ${kp.jumlah_betina || 0}
+                        </span>
+                    </div>
                 </td>
                 <td><span style="padding: 2px 8px; border-radius: 10px; background: ${statusColor}; color: white; font-size: 0.75rem;">${usagePercent > 90 ? 'Penuh' : 'Aktif'}</span></td>
                 <td>
@@ -95,8 +103,23 @@ class KandangManager {
     }
 
     static openModal() {
-        document.getElementById('kandangModal').classList.add('open');
-        document.getElementById('kandangForm').reset();
+        console.log('🔵 KandangManager.openModal() called');
+        const modal = document.getElementById('kandangModal');
+        const form = document.getElementById('kandangForm');
+        const jantanField = document.getElementById('k_jantan');
+        const betinaField = document.getElementById('k_betina');
+        
+        console.log('Modal element:', modal);
+        console.log('Jantan field:', jantanField);
+        console.log('Betina field:', betinaField);
+        
+        if (!jantanField || !betinaField) {
+            console.error('❌ GENDER FIELDS NOT FOUND IN DOM!');
+            alert('ERROR: Gender fields tidak ditemukan! Check console.');
+        }
+        
+        modal.classList.add('open');
+        form.reset();
         document.getElementById('k_id').value = '';
         document.getElementById('kandangModalTitle').innerText = 'Tambah Kandang';
     }
@@ -111,10 +134,11 @@ class KandangManager {
         const id = document.getElementById('k_id').value;
         const name = document.getElementById('k_name').value;
         
-        // Handle numbers: if empty, default to 0 for count
+        // Get gender-based counts
         let capacity = document.getElementById('k_capacity').value;
-        let count = document.getElementById('k_count').value;
-        let tanggalMasuk = document.getElementById('k_tanggal_masuk').value || null;
+        let jantan = document.getElementById('k_jantan') ? document.getElementById('k_jantan').value : 0;
+        let betina = document.getElementById('k_betina') ? document.getElementById('k_betina').value : 0;
+        let tanggalMasuk = document.getElementById('k_tanggal_masuk') ?.value || null;
 
         if (!name || !capacity) {
             alert('Nama Kandang dan Kapasitas harus diisi.');
@@ -122,12 +146,32 @@ class KandangManager {
         }
 
         capacity = parseInt(capacity);
-        count = count ? parseInt(count) : 0; // Default to 0 if empty
+        jantan = jantan ? parseInt(jantan) : 0;
+        betina = betina ? parseInt(betina) : 0;
+        const total = jantan + betina;
+        
+        // Validation
+        if (jantan < 0 || betina < 0) {
+            alert('❌ Jumlah jantan dan betina tidak boleh negatif!');
+            return;
+        }
+        
+        if (total === 0) {
+            const proceed = confirm('⚠️ Total populasi adalah 0. Yakin ingin melanjutkan?');
+            if (!proceed) return;
+        }
+        
+        if (total > capacity) {
+            alert(`❌ Total populasi (${total}) melebihi kapasitas kandang (${capacity})!`);
+            return;
+        }
 
         const payload = {
             nama_kandang: name,
             kapasitas: capacity,
-            jumlah_puyuh: count,
+            jumlah_jantan: jantan,
+            jumlah_betina: betina,
+            jumlah_puyuh: total, // Will be recalculated by trigger
             tanggal_masuk: tanggalMasuk,
             created_by: Auth.getCurrentName()
         };
@@ -175,7 +219,19 @@ class KandangManager {
             document.getElementById('k_id').value = data.id;
             document.getElementById('k_name').value = data.nama_kandang;
             document.getElementById('k_capacity').value = data.kapasitas;
-            document.getElementById('k_count').value = data.jumlah_puyuh;
+            
+            // Set gender fields if they exist
+            if (document.getElementById('k_jantan')) {
+                document.getElementById('k_jantan').value = data.jumlah_jantan || 0;
+            }
+            if (document.getElementById('k_betina')) {
+                document.getElementById('k_betina').value = data.jumlah_betina || 0;
+            }
+            // Calculate and show total
+            if (typeof this.updateTotal === 'function') {
+                this.updateTotal();
+            }
+            
             document.getElementById('k_tanggal_masuk').value = data.tanggal_masuk || '';
             
             document.getElementById('kandangModalTitle').innerText = 'Edit Kandang';
@@ -228,6 +284,71 @@ class KandangManager {
                     DashboardManager.renderStats();
                 }
                 alert('✅ Kandang berhasil dihapus!');
+            }
+        }
+    }
+    
+    /**
+     * Auto-calculate total from jantan + betina
+     */
+    static updateTotal() {
+        const jantanEl = document.getElementById('k_jantan');
+        const betinaEl = document.getElementById('k_betina');
+        const totalEl = document.getElementById('k_total');
+        
+        if (!jantanEl || !betinaEl) return; // Fields don't exist yet
+        
+        const jantan = parseInt(jantanEl.value) || 0;
+        const betina = parseInt(betinaEl.value) || 0;
+        const total = jantan + betina;
+        
+        if (totalEl) {
+            totalEl.value = total;
+        }
+        
+        // Show ratio
+        this.showRatio(jantan, betina);
+    }
+    
+    /**
+     * Display gender ratio and warnings
+     */
+    static showRatio(jantan, betina) {
+        const ratioDiv = document.getElementById('ratioDisplay');
+        const ratioText = document.getElementById('ratioText');
+        const ratioWarning = document.getElementById('ratioWarning');
+        
+        if (!ratioDiv || !ratioText || !ratioWarning) return; // Elements don't exist
+        
+        if (jantan === 0 && betina === 0) {
+            ratioDiv.style.display = 'none';
+            return;
+        }
+        
+        ratioDiv.style.display = 'block';
+        
+        if (jantan === 0) {
+            ratioText.innerText = 'Semua betina (tidak ada pejantan)';
+            ratioWarning.innerText = '⚠️ Perlu pejantan untuk breeding';
+            ratioWarning.style.color = 'var(--warning)';
+        } else if (betina === 0) {
+            ratioText.innerText = 'Semua jantan (tidak ada betina)';
+            ratioWarning.innerText = '⚠️ Perlu betina untuk produksi telur';
+            ratioWarning.style.color = 'var(--warning)';
+        } else {
+            const ratio = (betina / jantan).toFixed(1);
+            ratioText.innerText = `1 ♂ : ${ratio} ♀`;
+            
+            // Ideal ratio: 1:3 to 1:5
+            if (ratio < 3) {
+                ratioWarning.innerText = '💡 Bisa tambah betina (ideal 1:3-5)';
+                ratioWarning.style.color = '#2196F3';
+            } else if (ratio > 5) {
+                ratioWarning.innerText = '⚠️ Terlalu banyak betina per jantan (ideal 1:3-5)';
+                ratioWarning.style.color = 'var(--warning)';
+            } else {
+                ratioWarning.innerText = '✅ Rasio ideal!';
+                ratioWarning.style.color = 'var(--success)';
             }
         }
     }

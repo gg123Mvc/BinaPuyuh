@@ -59,7 +59,7 @@ class PakanManager {
                 <td>${date}</td>
                 <td><strong>${name}</strong></td>
                 <td>${item.jenis_pakan}</td>
-                <td>${item.jumlah_pakan} Kg</td>
+                <td>${item.jumlah_pakan} ${item.satuan || 'kg'}</td>
                 <td>${item.catatan || '-'}</td>
                 <td>
                      <button class="btn btn-danger btn-sm" onclick="PakanManager.delete(${item.id})"><i class="fas fa-trash"></i></button>
@@ -150,12 +150,13 @@ class PakanManager {
         
         const sb = window.supabaseClient;
         const kandangId = document.getElementById('pak_kandang').value;
-        // Removed pak_type input
+        const jenisPakan = document.getElementById('pak_jenis').value;
         const amount = parseFloat(document.getElementById('pak_amount').value);
+        const satuan = document.getElementById('pak_satuan').value.toLowerCase();
         const note = document.getElementById('pak_note').value;
         
-        if (!kandangId || !amount) {
-            alert('Mohon lengkapi data.');
+        if (!kandangId || !jenisPakan || !amount || !satuan) {
+            alert('Mohon lengkapi data (termasuk jenis pakan).');
             return;
         }
 
@@ -166,8 +167,9 @@ class PakanManager {
 
         const payload = {
             kandang_id: kandangId,
-            jenis_pakan: 'Standard',
+            jenis_pakan: jenisPakan,
             jumlah_pakan: amount,
+            satuan: satuan,
             catatan: note,
             created_by: Auth.getCurrentName(),
             tanggal: new Date().toISOString()
@@ -188,8 +190,8 @@ class PakanManager {
                     kandang_id: kandangId,
                     activity_type: 'PAKAN',
                     quantity: amount,
-                    unit: 'KG',
-                    notes: `(Pakan) ${note || ''}`
+                    unit: satuan.toUpperCase(),
+                    notes: `(${jenisPakan}) ${note || ''}`
                 });
             }
         }
