@@ -208,7 +208,6 @@
                                     <th>Kategori</th>
                                     <th>Jml</th>
                                     <th>Total</th>
-                                    <th>Aksi</th>
                                 </tr>
                             </thead>
                             <tbody id="purchaseTableBody">
@@ -596,14 +595,19 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="pak_satuan">Satuan</label>
-                    <select id="pak_satuan" class="form-select" onchange="document.getElementById('pak_unit_display').innerText = this.options[this.selectedIndex].text.split(' ')[0]">
-                        <option value="kg" selected>Kg (Kilogram)</option>
-                        <option value="sak">Sak (Karung)</option>
-                        <option value="gram">Gram</option>
-                        <option value="cm">cm (Centimeter)</option>
-                        <option value="pack">Pack (Kemasan)</option>
-                        <option value="box">Box (Kotak)</option>
-                    </select>
+                        <select id="pak_satuan"
+                                class="form-select"
+                                onchange="document.getElementById('pak_unit_display').innerText =
+                                        this.options[this.selectedIndex].text.split(' ')[0]">
+                            <option value="kg" selected>Kg (Kilogram)</option>
+                            <option value="gram">Gram</option>
+                            <option value="liter">Liter (L)</option>
+                            <option value="ml">Mililiter (ml)</option>
+                            <option value="sak">Sak (Karung)</option>
+                            <option value="pack">Pack (Kemasan)</option>
+                            <option value="box">Box (Kotak)</option>
+                            <option value="cm">cm (Centimeter)</option>
+                        </select>
                     <small style="display: block; margin-top: 0.5rem; color: var(--text-dim); font-size: 0.85rem;">
                         <i class="fas fa-info-circle"></i> Default: Kg (dapat diubah)
                     </small>
@@ -769,7 +773,7 @@
     <script type="module" src="./src/InkubatorManager.js"></script>
     <script type="module" src="./src/EstimasiProduksiManager.js"></script>
     <script type="module" src="./src/KandangManager.js?v=20260201validation"></script>
-    <script type="module" src="./src/PembelianManager.js"></script>
+    <script type="module" src="./src/PembelianManager.js?v=20260201noaction"></script>
     <script type="module" src="./src/PakanManager.js"></script>
     <script type="module" src="./src/PopulasiManager.js"></script>
     <script type="module" src="./src/CatatanTelurManager.js"></script>
@@ -836,9 +840,10 @@
                 <div class="form-group">
                     <label class="form-label" for="p_category">Kategori</label>
                     <select id="p_category" class="form-input" onchange="PembelianManager.onCategoryChange()">
-                        <option value="Pakan">Pakan</option>
-                        <option value="Obat">Obat / Vitamin</option>
-                        <option value="Perlengkapan">Perlengkapan</option>
+                        <option value="pakan standard">Pakan Standard</option>
+                        <option value="pakan berkualitas">Pakan Berkualitas</option>
+                        <option value="obat">Obat / Vitamin</option>
+                        <option value="perlengkapan">Perlengkapan</option>
                     </select>
                 </div>
                 <div class="form-group">

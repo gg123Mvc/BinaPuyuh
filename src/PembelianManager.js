@@ -66,9 +66,6 @@ class PembelianManager {
                 <td><span style="font-size:0.8rem; padding:2px 6px; background:rgba(255,255,255,0.1); border-radius:4px;">${p.kategori}</span></td>
                 <td>${p.jumlah} ${p.satuan || 'pcs'}</td>
                 <td>${formatCurrency(p.harga_total)}</td>
-                <td>
-                    <button class="btn btn-danger btn-sm" onclick="PembelianManager.delete(${p.id})"><i class="fas fa-trash"></i></button>
-                </td>
             `;
             tbody.appendChild(tr);
             if (index === 0) console.log('✅ First row rendered');
@@ -166,6 +163,8 @@ class PembelianManager {
         // Category to unit mapping
         const categoryMap = {
             'pakan': 'kg',
+            'pakan standard': 'kg',
+            'pakan berkualitas': 'kg',
             'obat': 'ml',
             'obat / vitamin': 'ml',
             'vitamin': 'ml',
