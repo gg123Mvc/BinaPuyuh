@@ -13,10 +13,10 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
 
-  <script type="module" crossorigin src="./assets/dashboard-C_ggylOV.js"></script>
+  <script type="module" crossorigin src="./assets/dashboard-eO62JlrL.js"></script>
   <link rel="modulepreload" crossorigin href="./assets/config-_HLYuJBG.js">
   <link rel="modulepreload" crossorigin href="./assets/app-DcSmm_kz.js">
-  <link rel="stylesheet" crossorigin href="./assets/style-DK_YuoXq.css">
+  <link rel="stylesheet" crossorigin href="./assets/style-B0oKYwws.css">
 </head>
 <body>
 
@@ -485,40 +485,6 @@
         </main>
     </div>
     <!-- MODAL ADD/EDIT KANDANG -->
-    <div id="kandangModal" class="modal">
-        <div class="modal-content">           
-             <h3 class="mb-3" id="kandangModalTitle">Tambah Kandang</h3>
-            <form id="kandangForm" onsubmit="event.preventDefault(); KandangManager.save();">
-                <input type="hidden" id="k_id">
-                <div class="form-group">
-                    <label class="form-label">Nama Kandang</label>
-                    <input type="text" id="k_name" class="form-input" required placeholder="Misal: Kandang A">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Kapasitas Maksimal</label>
-                    <input type="number" id="k_capacity" class="form-input" required min="0">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Jumlah Puyuh Saat Ini</label>
-                    <input type="number" id="k_count" class="form-input" required min="0">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">
-                        <i class="fas fa-calendar-alt"></i> Tanggal Masuk Puyuh (Opsional)
-                    </label>
-                    <input type="date" id="k_tanggal_masuk" class="form-input" placeholder="Kapan puyuh masuk kandang?">
-                    <small style="display: block; margin-top: 0.5rem; color: var(--text-dim); font-size: 0.85rem;">
-                        <i class="fas fa-info-circle"></i> Untuk estimasi produksi telur otomatis
-                    </small>
-                </div>
-                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1rem;">
-                    <button type="button" class="btn btn-outline" onclick="KandangManager.closeModal()">Batal</button>
-                    <button type="submit" class="btn btn-primary">Simpan Data</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <!-- MODAL INKUBATOR -->
     <div id="inkubatorModal" class="modal">
         <div class="modal-content" style="max-height: 85vh; overflow-y: auto;">
@@ -932,5 +898,216 @@
             </form>
         </div>
     </div>
+
+    <!-- MODAL KANDANG -->
+    <div id="kandangModal" class="modal">
+        <div class="modal-content">
+            <h3 class="mb-3" id="kandangModalTitle">Tambah Kandang</h3>
+            <form id="kandangForm" onsubmit="event.preventDefault(); KandangManager.save();">
+                <input type="hidden" id="k_id">
+                
+                <div class="form-group">
+                    <label class="form-label" for="k_name">Nama Kandang <span style="color: var(--danger);">*</span></label>
+                    <input type="text" id="k_name" class="form-input" required placeholder="Contoh: Kandang A1">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="k_capacity">Kapasitas <span style="color: var(--danger);">*</span></label>
+                    <input type="number" id="k_capacity" class="form-input" required min="1" placeholder="Maksimal puyuh">
+                    <small style="display: block; margin-top: 0.5rem; color: var(--text-dim); font-size: 0.85rem;">
+                        <i class="fas fa-info-circle"></i> Jumlah maksimal puyuh yang bisa ditampung
+                    </small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="k_jantan">Jumlah Puyuh Jantan ♂</label>
+                    <input type="number" id="k_jantan" class="form-input" min="0" value="0" 
+                           oninput="KandangManager.updateTotal('k_jantan')" placeholder="0">
+                    <small style="display: block; margin-top: 0.5rem; color: var(--text-dim); font-size: 0.85rem;">
+                        <i class="fas fa-mars" style="color: #2196F3;"></i> Pejantan untuk breeding
+                    </small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="k_betina">Jumlah Puyuh Betina ♀</label>
+                    <input type="number" id="k_betina" class="form-input" min="0" value="0" 
+                           oninput="KandangManager.updateTotal('k_betina')" placeholder="0">
+                    <small style="display: block; margin-top: 0.5rem; color: var(--text-dim); font-size: 0.85rem;">
+                        <i class="fas fa-venus" style="color: #E91E63;"></i> Indukan untuk produksi telur
+                    </small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="k_total">Total Populasi</label>
+                    <input type="number" id="k_total" class="form-input" readonly value="0"
+                           style="background: rgba(255,255,255,0.05); cursor: not-allowed;">
+                    <small style="display: block; margin-top: 0.5rem; color: var(--success); font-size: 0.85rem;">
+                        <i class="fas fa-calculator"></i> Otomatis dihitung (jantan + betina)
+                    </small>
+                </div>
+
+                <!-- Ratio Display -->
+                <div id="ratioDisplay" style="
+                    background: rgba(33, 150, 243, 0.1);
+                    border-left: 3px solid #2196F3;
+                    padding: 0.75rem;
+                    margin-bottom: 1rem;
+                    border-radius: 4px;
+                    display: none;
+                ">
+                    <strong style="color: var(--primary-color);">Rasio Jenis Kelamin:</strong> <span id="ratioText">-</span><br>
+                    <small id="ratioWarning" style="color: var(--warning);"></small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="k_tanggal_masuk">Tanggal Masuk (DOC)</label>
+                    <input type="date" id="k_tanggal_masuk" class="form-input">
+                    <small style="display: block; margin-top: 0.5rem; color: var(--text-dim); font-size: 0.85rem;">
+                        <i class="fas fa-calendar"></i> Tanggal puyuh masuk/menetas (opsional)
+                    </small>
+                </div>
+
+                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem;">
+                    <button type="button" class="btn btn-secondary" onclick="KandangManager.closeModal()">Batal</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Simpan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- HELP SYSTEM -->
+    <style>
+        .help-btn {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.5);
+            z-index: 9999;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .help-btn:hover { transform: scale(1.1); }
+        .help-list { list-style: none; padding: 0; }
+        .help-list li {
+            background: rgba(255,255,255,0.05);
+            padding: 1rem;
+            margin-bottom: 0.8rem;
+            border-radius: 8px;
+            border-left: 3px solid var(--primary-color);
+        }
+        .help-list h4 { margin: 0 0 0.5rem 0; color: var(--primary-color); }
+        .help-list p { margin: 0; font-size: 0.9rem; color: var(--text-dim); }
+    </style>
+
+    <button class="help-btn" onclick="showHelp()" title="Bantuan">
+        <i class="fas fa-question"></i>
+    </button>
+
+    <div id="helpModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h3 style="margin: 0;"><i class="fas fa-book-open"></i> Panduan Halaman Ini</h3>
+                <button onclick="closeHelp()" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
+            </div>
+            <div id="helpContent"></div>
+        </div>
+    </div>
+
+    <script>
+        // Data Panduan per Halaman
+        const helpData = {
+            'overview': [
+                { title: '📊 Ringkasan Cepat', desc: 'Kartu-kartu di atas menampilkan total kandang, populasi puyuh, dan produksi telur hari ini secara real-time.' },
+                { title: '⚠️ Peringatan Produksi', desc: 'Jika ada kandang dengan produksi telur rendah, peringatan akan muncul di dashboard ini.' }
+            ],
+            'kandang': [
+                { title: '➕ Tambah Kandang', desc: 'Gunakan tombol ini untuk mendaftarkan kandang baru. Anda bisa mencatat jumlah jantan dan betina.' },
+                { title: '♂♀ Rasio Gender', desc: 'Sistem otomatis menghitung rasio jantan:betina. Idealnya 1 jantan untuk 3-5 betina.' },
+                { title: '📝 Edit & Detail', desc: 'Klik tombol Edit untuk mengubah populasi. Klik Detail untuk melihat riwayat aktivitas kandang.' }
+            ],
+            'pembelian': [
+                { title: '🛒 Input Stok', desc: 'Catat setiap pembelian pakan, obat, atau perlengkapan. Stok akan bertambah otomatis.' },
+                { title: '📉 Stok Menipis', desc: 'Barang dengan stok sedikit akan muncul di tabel "Stok Menipis" di dashboard.' },
+                { title: '📥 Export CSV', desc: 'Unduh laporan pembelian ke Excel/CSV untuk backup data.' }
+            ],
+            'pakan': [
+                { title: '🍽️ Catat Pakan', desc: 'Setiap memberi pakan, catat di sini. Pilih jenis pakan (Starter/Grower/Layer) agar biaya terhitung akurat.' },
+                { title: '💰 Estimasi Biaya', desc: 'Sistem menghitung estimasi biaya pakan per hari berdasarkan konsumsi.' }
+            ],
+            'estimasi-produksi': [
+                { title: '🥚 Status Produksi', desc: 'Indikator warna (Hijau/Kuning/Merah) menunjukkan performa produksi telur berdasarkan umur puyuh.' },
+                { title: '💡 Solusi Masalah', desc: 'Jika ada warning (Merah), klik tombol "Lihat Solusi" untuk mendapatkan saran perbaikan.' }
+            ],
+            'catatantelur': [
+                { title: '🥚 Catat Telur', desc: 'Input hasil panen telur harian per kandang. Masukkan jumlah telur utuh, retak, dan abnormal.' },
+                { title: '📈 Grafik Produksi', desc: 'Lihat tren naik-turun produksi telur dalam 7 hari terakhir.' }
+            ],
+            'inkubator': [
+                { title: '🌡️ Data Inkubator', desc: 'Pantau telur yang sedang ditetaskan. Catat tanggal masuk dan perkiraan tanggal menetas.' },
+                { title: '📅 Estimasi Menetas', desc: 'Sistem memberikan estimasi kapan telur akan menetas (biasanya 16-17 hari untuk puyuh).' },
+                { title: '🐣 Hasil Penetasan', desc: 'Setelah menetas, update data menjadi "Menetas" dan masukkan jumlah anakan yang hidup.' }
+            ],
+            'populasi': [
+                { title: '📉 Catat Kematian/Afkir', desc: 'Jika ada puyuh mati atau dijual (afkir), catat disini agar data populasi selalu akurat.' },
+                { title: '📊 Riwayat Perubahan', desc: 'Tabel ini mencatat semua pengurangan populasi beserta alasannya.' }
+            ],
+            'admin': [
+                { title: '👥 Kelola Pengguna', desc: 'Daftar semua admin yang memiliki akses ke dashboard ini.' },
+                { title: '🔑 Approval', desc: 'Setujui atau tolak pendaftaran admin baru. Hapus akses admin lama jika diperlukan.' }
+            ],
+            'settings': [
+                { title: '⚙️ Profil Saya', desc: 'Ubah nama dan password akun Anda disini.' },
+                { title: '🚪 Logout', desc: 'Keluar dari sesi dashboard untuk keamanan.' }
+            ]
+        };
+
+        function showHelp() {
+            const modal = document.getElementById('helpModal');
+            const content = document.getElementById('helpContent');
+            
+            // Detect active page
+            let activePage = 'overview';
+            const sections = document.querySelectorAll('.section-content');
+            sections.forEach(sec => {
+                // Fix: Check for 'active' class as set by SidebarManager
+                if (sec.classList.contains('active')) {
+                    activePage = sec.id;
+                }
+            });
+
+            // Get help items
+            const guides = helpData[activePage] || helpData['overview'];
+
+            modal.classList.add('open');
+            content.innerHTML = `
+                <ul class="help-list">
+                    ${guides.map(item => `
+                        <li>
+                            <h4>${item.title}</h4>
+                            <p>${item.desc}</p>
+                        </li>
+                    `).join('')}
+                </ul>
+                <div style="text-align: right; margin-top: 1rem;">
+                    <button class="btn btn-primary" onclick="closeHelp()">Mengerti</button>
+                </div>
+            `;
+        }
+
+        function closeHelp() {
+            document.getElementById('helpModal').classList.remove('open');
+        }
+    </script>
 </body>
 </html>
