@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Puyuh Farm</title>
+    <link rel="icon" type="image/png" href="./assets/logo-BuNsA154.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Chart.js for beautiful charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -12,10 +13,10 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
 
-  <script type="module" crossorigin src="./assets/dashboard-gta-fknr.js"></script>
+  <script type="module" crossorigin src="./assets/dashboard-C_ggylOV.js"></script>
   <link rel="modulepreload" crossorigin href="./assets/config-_HLYuJBG.js">
   <link rel="modulepreload" crossorigin href="./assets/app-DcSmm_kz.js">
-  <link rel="stylesheet" crossorigin href="./assets/style-D39I2b9w.css">
+  <link rel="stylesheet" crossorigin href="./assets/style-DK_YuoXq.css">
 </head>
 <body>
 
@@ -116,7 +117,7 @@
                     <div class="stat-card">
                         <div class="stat-icon"><i class="fas fa-egg"></i></div>
                         <div class="stat-value" id="dash-total-telur">0</div>
-                        <div class="stat-label">Produksi Telur (Hari Ini)</div>
+                        <div class="stat-label">Total Telur di Inkubator</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon"><i class="fas fa-wallet"></i></div>
@@ -334,15 +335,50 @@
                                     <th>Umur (Hari)</th>
                                     <th>Estimasi Mulai Bertelur</th>
                                     <th>Status Produksi</th>
+                                    <th style="min-width: 140px;">Total Produksi (All Time)</th>
+                                    <th style="min-width: 180px;">Jumlah Telur Hari Ini</th>
                                 </tr>
                             </thead>
                             <tbody id="estimasiProduksiTableBody">
                                 <tr>
-                                    <td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-dim);">
+                                    <td colspan="9" style="text-align: center; padding: 2rem; color: var(--text-dim);">
                                         <i class="fas fa-spinner fa-spin"></i> Memuat data...
                                     </td>
                                 </tr>
                             </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION: CATATAN TELUR -->
+            <div id="catatantelur" class="section-content">
+                <div class="card">
+                    <div class="section-header">
+                        <h3><i class="fas fa-clipboard-list"></i> Catatan Produksi Telur</h3>
+                        <div class="action-btn-group">
+                            <button class="btn btn-outline btn-sm" onclick="CatatanTelurManager.exportData()">
+                                <i class="fas fa-file-csv"></i> Export CSV
+                            </button>
+                            <button class="btn btn-primary" onclick="CatatanTelurManager.openModal()">
+                                <i class="fas fa-plus"></i> Catat Produksi
+                            </button>
+                        </div>
+                    </div>
+
+                    <div style="overflow-x:auto">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Tanggal</th>
+                                    <th>Kandang</th>
+                                    <th>Jumlah</th>
+                                    <th>Kualitas</th>
+                                    <th>Catatan</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="catatanTelurTableBody"></tbody>
                         </table>
                     </div>
                 </div>
@@ -576,11 +612,38 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Jumlah (Kg)</label>
+                    <label class="form-label" for="pak_jenis">Jenis Pakan <span style="color: var(--danger);">*</span></label>
+                    <select id="pak_jenis" class="form-select" required>
+                        <option value="">-- Pilih Jenis Pakan --</option>
+                        <option value="Pakan Standard" selected>Pakan Standard</option>
+                        <option value="Pakan Berkualitas">Pakan Berkualitas</option>
+                        <option value="Obat">Obat</option>
+                    </select>
+                    <small style="display: block; margin-top: 0.5rem; color: var(--text-dim); font-size: 0.85rem;">
+                        <i class="fas fa-info-circle"></i> Pilih jenis pakan yang diberikan
+                    </small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Jumlah (<span id="pak_unit_display">Kg</span>)</label>
                     <div style="margin-bottom: 5px;">
                         <small id="pak_stock_info" style="font-weight: bold; color: #666;">Memuat stok...</small>
                     </div>
                     <input type="number" id="pak_amount" class="form-input" step="0.1" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="pak_satuan">Satuan</label>
+                    <select id="pak_satuan" class="form-select" onchange="document.getElementById('pak_unit_display').innerText = this.options[this.selectedIndex].text.split(' ')[0]">
+                        <option value="kg" selected>Kg (Kilogram)</option>
+                        <option value="sak">Sak (Karung)</option>
+                        <option value="gram">Gram</option>
+                        <option value="cm">cm (Centimeter)</option>
+                        <option value="pack">Pack (Kemasan)</option>
+                        <option value="box">Box (Kotak)</option>
+                    </select>
+                    <small style="display: block; margin-top: 0.5rem; color: var(--text-dim); font-size: 0.85rem;">
+                        <i class="fas fa-info-circle"></i> Default: Kg (dapat diubah)
+                    </small>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Catatan</label>
@@ -632,6 +695,46 @@
                 <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1rem;">
                     <button type="button" class="btn btn-secondary" onclick="PopulasiManager.closeModal()">Batal</button>
                     <button type="submit" class="btn btn-primary">Simpan & Update Kandang</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL CATATAN TELUR -->
+    <div id="catatanTelurModal" class="modal">
+        <div class="modal-content">
+            <h3 class="mb-3" id="catatanTelurModalTitle">Catat Produksi Telur</h3>
+            <form id="catatanTelurForm" onsubmit="event.preventDefault(); CatatanTelurManager.save();">
+                <input type="hidden" id="ct_id">
+                <div class="form-group">
+                    <label class="form-label">Tanggal</label>
+                    <input type="date" id="ct_tanggal" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Kandang</label>
+                    <select id="ct_kandang" class="form-input" required>
+                        <option value="">-- Pilih Kandang --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Jumlah Telur (butir)</label>
+                    <input type="number" id="ct_jumlah" class="form-input" required min="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Kualitas</label>
+                    <select id="ct_kualitas" class="form-input">
+                        <option value="Baik">Baik</option>
+                        <option value="Retak">Retak</option>
+                        <option value="Pecah">Pecah</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Catatan (Opsional)</label>
+                    <textarea id="ct_catatan" class="form-input" rows="2" placeholder="Catatan tambahan..."></textarea>
+                </div>
+                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1rem;">
+                    <button type="button" class="btn btn-secondary" onclick="CatatanTelurManager.closeModal()">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan Data</button>
                 </div>
             </form>
         </div>
@@ -693,7 +796,8 @@
             });
         });
     </script>
- <!-- New Manager -->
+
+    <!-- <script type="module" src="./src/TelurManager.js"></script> -->  <!-- File not exist, using CatatanTelurManager instead --> <!-- New Manager -->
     <!-- MODAL PEMBELIAN -->
     <div id="pembelianModal" class="modal">
         <div class="modal-content">
@@ -705,7 +809,7 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="p_category">Kategori</label>
-                    <select id="p_category" class="form-input">
+                    <select id="p_category" class="form-input" onchange="PembelianManager.onCategoryChange()">
                         <option value="Pakan">Pakan</option>
                         <option value="Obat">Obat / Vitamin</option>
                         <option value="Perlengkapan">Perlengkapan</option>
@@ -714,6 +818,26 @@
                 <div class="form-group">
                     <label class="form-label" for="p_qty">Jumlah</label>
                     <input type="number" id="p_qty" class="form-input" required min="1">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="p_satuan">Satuan <span style="color: var(--danger);">*</span></label>
+                    <select id="p_satuan" class="form-select" required>
+                        <option value="">-- Pilih Satuan --</option>
+                        <option value="pcs">Pcs (Satuan)</option>
+                        <option value="kg">Kg (Kilogram)</option>
+                        <option value="butir">Butir (Telur)</option>
+                        <option value="ekor">Ekor (Hewan)</option>
+                        <option value="gram">Gram</option>
+                        <option value="cm">cm (Centimeter)</option>
+                        <option value="sak">Sak (Karung)</option>
+                        <option value="pack">Pack (Kemasan)</option>
+                        <option value="box">Box (Kotak)</option>
+                        <option value="ml">ml (Mililiter)</option>
+                        <option value="meter2">m² (Meter Persegi)</option>
+                    </select>
+                    <small style="display: block; margin-top: 0.5rem; color: var(--text-dim); font-size: 0.85rem;">
+                        <i class="fas fa-info-circle"></i> Otomatis terisi sesuai kategori, dapat diubah manual
+                    </small>
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="p_price">Harga Satuan (Rp)</label>
@@ -726,6 +850,84 @@
                 <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1rem;">
                     <button type="button" class="btn btn-secondary" onclick="PembelianManager.closeModal()">Batal</button>
                     <button type="submit" class="btn btn-primary">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL KANDANG -->
+    <div id="kandangModal" class="modal">
+        <div class="modal-content">
+            <h3 class="mb-3" id="kandangModalTitle">Tambah Kandang</h3>
+            <form id="kandangForm" onsubmit="event.preventDefault(); KandangManager.save();">
+                <input type="hidden" id="k_id">
+                
+                <div class="form-group">
+                    <label class="form-label" for="k_name">Nama Kandang <span style="color: var(--danger);">*</span></label>
+                    <input type="text" id="k_name" class="form-input" required placeholder="Contoh: Kandang A1">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="k_capacity">Kapasitas <span style="color: var(--danger);">*</span></label>
+                    <input type="number" id="k_capacity" class="form-input" required min="1" placeholder="Maksimal puyuh">
+                    <small style="display: block; margin-top: 0.5rem; color: var(--text-dim); font-size: 0.85rem;">
+                        <i class="fas fa-info-circle"></i> Jumlah maksimal puyuh yang bisa ditampung
+                    </small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="k_jantan">Jumlah Puyuh Jantan ♂</label>
+                    <input type="number" id="k_jantan" class="form-input" min="0" value="0" 
+                           oninput="KandangManager.updateTotal()" placeholder="0">
+                    <small style="display: block; margin-top: 0.5rem; color: var(--text-dim); font-size: 0.85rem;">
+                        <i class="fas fa-mars" style="color: #2196F3;"></i> Pejantan untuk breeding
+                    </small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="k_betina">Jumlah Puyuh Betina ♀</label>
+                    <input type="number" id="k_betina" class="form-input" min="0" value="0" 
+                           oninput="KandangManager.updateTotal()" placeholder="0">
+                    <small style="display: block; margin-top: 0.5rem; color: var(--text-dim); font-size: 0.85rem;">
+                        <i class="fas fa-venus" style="color: #E91E63;"></i> Indukan untuk produksi telur
+                    </small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="k_total">Total Populasi</label>
+                    <input type="number" id="k_total" class="form-input" readonly value="0"
+                           style="background: rgba(255,255,255,0.05); cursor: not-allowed;">
+                    <small style="display: block; margin-top: 0.5rem; color: var(--success); font-size: 0.85rem;">
+                        <i class="fas fa-calculator"></i> Otomatis dihitung (jantan + betina)
+                    </small>
+                </div>
+
+                <!-- Ratio Display -->
+                <div id="ratioDisplay" style="
+                    background: rgba(33, 150, 243, 0.1);
+                    border-left: 3px solid #2196F3;
+                    padding: 0.75rem;
+                    margin-bottom: 1rem;
+                    border-radius: 4px;
+                    display: none;
+                ">
+                    <strong style="color: var(--primary-color);">Rasio Jenis Kelamin:</strong> <span id="ratioText">-</span><br>
+                    <small id="ratioWarning" style="color: var(--warning);"></small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="k_tanggal_masuk">Tanggal Masuk (DOC)</label>
+                    <input type="date" id="k_tanggal_masuk" class="form-input">
+                    <small style="display: block; margin-top: 0.5rem; color: var(--text-dim); font-size: 0.85rem;">
+                        <i class="fas fa-calendar"></i> Tanggal puyuh masuk/menetas (opsional)
+                    </small>
+                </div>
+
+                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem;">
+                    <button type="button" class="btn btn-secondary" onclick="KandangManager.closeModal()">Batal</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Simpan
+                    </button>
                 </div>
             </form>
         </div>
