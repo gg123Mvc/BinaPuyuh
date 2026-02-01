@@ -845,3 +845,7 @@ table td {
     color: var(--dim-text); /* Ensure data is white/readable */
     vertical-align: middle;
 }
+.modal-content {
+  max-height: 90vh;
+  overflow-y: auto;
+}

@@ -104,24 +104,24 @@ class KandangManager {
 
     static openModal() {
         console.log('🔵 KandangManager.openModal() called');
+        
+        // RESET STATE
+        this.isEditMode = false;
+        this.lockedTotal = null;
+        console.log('🔓 ADD MODE: Total Unlocked');
+
         const modal = document.getElementById('kandangModal');
         const form = document.getElementById('kandangForm');
-        const jantanField = document.getElementById('k_jantan');
-        const betinaField = document.getElementById('k_betina');
         
-        console.log('Modal element:', modal);
-        console.log('Jantan field:', jantanField);
-        console.log('Betina field:', betinaField);
+        if (modal) modal.classList.add('open');
+        if (form) form.reset();
         
-        if (!jantanField || !betinaField) {
-            console.error('❌ GENDER FIELDS NOT FOUND IN DOM!');
-            alert('ERROR: Gender fields tidak ditemukan! Check console.');
-        }
-        
-        modal.classList.add('open');
-        form.reset();
         document.getElementById('k_id').value = '';
         document.getElementById('kandangModalTitle').innerText = 'Tambah Kandang';
+        
+        // Reset ratio warning text
+        const ratioWarning = document.getElementById('ratioWarning');
+        if(ratioWarning) ratioWarning.innerText = '';
     }
 
     static closeModal() {
@@ -155,12 +155,25 @@ class KandangManager {
             alert('❌ Jumlah jantan dan betina tidak boleh negatif!');
             return;
         }
+
+        // --- STRICT TOTAL LOCK CHECK FOR EDIT MODE ---
+        if (this.isEditMode && this.lockedTotal !== null) {
+            if (total !== this.lockedTotal) {
+                alert(`❌ GAGAL SIMPAN: Total Populasi berubah dari ${this.lockedTotal} menjadi ${total}.\n\nDi menu "Edit Kandang", Total Populasi TIDAK BOLEH BERUBAH.\n\nJika ingin menambah/mengurangi populasi (karena mati/beli), mohon gunakan menu "Riwayat Populasi".`);
+                
+                // Optional: Reset values to fix it
+                this.updateTotal('manual');
+                return;
+            }
+        }
         
         if (total === 0) {
             const proceed = confirm('⚠️ Total populasi adalah 0. Yakin ingin melanjutkan?');
             if (!proceed) return;
         }
         
+        // Capacity check only strictly enforced if ADDING or if total increases
+        // But since total is locked in Edit, this check is mostly for ADD mode
         if (total > capacity) {
             alert(`❌ Total populasi (${total}) melebihi kapasitas kandang (${capacity})!`);
             return;
@@ -213,28 +226,28 @@ class KandangManager {
 
     static async edit(id) {
         const sb = window.supabaseClient;
-        // Fetch specific item to ensure fresh data
         const { data, error } = await sb.from('kandang').select('*').eq('id', id).single();
         if (data) {
             document.getElementById('k_id').value = data.id;
             document.getElementById('k_name').value = data.nama_kandang;
             document.getElementById('k_capacity').value = data.kapasitas;
             
-            // Set gender fields if they exist
-            if (document.getElementById('k_jantan')) {
-                document.getElementById('k_jantan').value = data.jumlah_jantan || 0;
-            }
-            if (document.getElementById('k_betina')) {
-                document.getElementById('k_betina').value = data.jumlah_betina || 0;
-            }
-            // Calculate and show total
-            if (typeof this.updateTotal === 'function') {
-                this.updateTotal();
-            }
+            // Set values
+            const j = data.jumlah_jantan || 0;
+            const b = data.jumlah_betina || 0;
+            
+            if (document.getElementById('k_jantan')) document.getElementById('k_jantan').value = j;
+            if (document.getElementById('k_betina')) document.getElementById('k_betina').value = b;
+            
+            // LOCK MODE
+            this.isEditMode = true;
+            this.lockedTotal = j + b;
+            console.log(`🔒 LOCK EDIT MODE: Total Locked at ${this.lockedTotal}`);
+            
+            this.updateTotal('manual'); // Init display
             
             document.getElementById('k_tanggal_masuk').value = data.tanggal_masuk || '';
-            
-            document.getElementById('kandangModalTitle').innerText = 'Edit Kandang';
+            document.getElementById('kandangModalTitle').innerText = 'Edit Kandang (Populasi Terkunci)';
             document.getElementById('kandangModal').classList.add('open');
         }
     }
@@ -288,26 +301,87 @@ class KandangManager {
         }
     }
     
+    // State for Edit Mode Locking
+    static lockedTotal = null; 
+    static isEditMode = false;
+
     /**
      * Auto-calculate total from jantan + betina
+     * Enhanced Logic: 
+     * - If Add Mode: Total = J + B
+     * - If Edit Mode: Total is LOCKED. 
+     *   Adjusting Jantan -> Auto-sets Betina = Total - Jantan
+     *   Adjusting Betina -> Auto-sets Jantan = Total - Betina
      */
-    static updateTotal() {
+    static updateTotal(source = 'manual') {
         const jantanEl = document.getElementById('k_jantan');
         const betinaEl = document.getElementById('k_betina');
         const totalEl = document.getElementById('k_total');
+        const capacityEl = document.getElementById('k_capacity');
         
-        if (!jantanEl || !betinaEl) return; // Fields don't exist yet
+        if (!jantanEl || !betinaEl) return; 
         
-        const jantan = parseInt(jantanEl.value) || 0;
-        const betina = parseInt(betinaEl.value) || 0;
-        const total = jantan + betina;
-        
-        if (totalEl) {
-            totalEl.value = total;
+        let jantan = parseInt(jantanEl.value) || 0;
+        let betina = parseInt(betinaEl.value) || 0;
+
+        // --- EXCLUSIVE LOGIC FOR EDIT MODE ---
+        if (this.isEditMode && this.lockedTotal !== null) {
+            console.log(`🔒 Edit Mode Active. Locked Total: ${this.lockedTotal}. Source: ${source}`);
+            
+            if (source === 'k_jantan') {
+                // User changed Jantan -> Adjust Betina
+                if (jantan > this.lockedTotal) {
+                    jantan = this.lockedTotal;
+                    jantanEl.value = jantan; 
+                }
+                betina = this.lockedTotal - jantan;
+                betinaEl.value = betina;
+                
+                // Visual Flash for Betina
+                betinaEl.style.backgroundColor = '#e3f2fd'; // Light Blue
+                setTimeout(() => betinaEl.style.backgroundColor = '', 200);
+
+            } else if (source === 'k_betina') {
+                // User changed Betina -> Adjust Jantan
+                if (betina > this.lockedTotal) {
+                    betina = this.lockedTotal;
+                    betinaEl.value = betina; 
+                }
+                jantan = this.lockedTotal - betina;
+                jantanEl.value = jantan;
+                
+                // Visual Flash for Jantan
+                jantanEl.style.backgroundColor = '#e3f2fd'; // Light Blue
+                setTimeout(() => jantanEl.style.backgroundColor = '', 200);
+            }
+            
+            // Force total just to be safe (though it should be constant)
+            totalEl.value = this.lockedTotal;
+            
+            // Show message that total is locked
+            const ratioWarning = document.getElementById('ratioWarning');
+            if (ratioWarning) {
+                ratioWarning.innerHTML = `<i class="fas fa-lock"></i> Total populasi terkunci (${this.lockedTotal}). Gunakan menu "Riwayat Populasi" untuk menambah/mengurangi.`;
+                ratioWarning.style.color = 'var(--text-dim)'; 
+                ratioWarning.parentElement.style.display = 'block';
+            }
+
+        } else {
+            // --- STANDARD LOGIC FOR ADD MODE ---
+            const total = jantan + betina;
+            if (totalEl) totalEl.value = total;
+            
+            // Capacity Check (only relevant for Add mode since Edit preserves total)
+            const capacity = capacityEl ? (parseInt(capacityEl.value) || 0) : 0;
+            if (capacity > 0 && total > capacity) {
+                totalEl.style.color = '#ff4444';
+            } else {
+                totalEl.style.color = '';
+            }
         }
         
         // Show ratio
-        this.showRatio(jantan, betina);
+        this.showRatio(parseInt(jantanEl.value), parseInt(betinaEl.value));
     }
     
     /**
